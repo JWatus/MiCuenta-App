@@ -44,7 +44,6 @@ public class AccountController {
     @Produces({MediaType.TEXT_PLAIN})
     public Response add(@FormParam("username") String username,
                           @FormParam("password") String password,
-                          @FormParam("id") String id,
                           @FormParam("name") String name,
                           @FormParam("surname") String surname,
                           @FormParam("creditCardNumber") String creditCardNumber
@@ -57,7 +56,6 @@ public class AccountController {
         CreditCard newCreditCard = new CreditCard(creditCardNumber, user);
         creditCards.add(newCreditCard);;
 
-        user.setId(Integer.parseInt(id));
         user.setName(name);
         user.setSurname(surname);
         user.setCreditCardNumber(creditCards);
