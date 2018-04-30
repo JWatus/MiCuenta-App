@@ -40,4 +40,11 @@ public class DataCreator {
 
         return new Debtor("Jakub", "Watus", "980-122-111", setOfDebts);
     }
+
+    public Payment createPayment() {
+
+        CreditCard creditCard = new CreditCard("77777777777777", "777", "Natalie", "Lopez");
+
+        return new Payment(LocalDate.now(), BigDecimal.valueOf(955.00), creditCard);
+    }
 }

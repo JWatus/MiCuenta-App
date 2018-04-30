@@ -85,37 +85,46 @@ public class AccountController {
     @RequestMapping(value = "/payment", consumes = MediaType.APPLICATION_JSON, method = RequestMethod.POST)
     public void getPayment(@RequestBody Payment payment, String ssn, Long debtId) {
 
-        LOG.info("Received payment: {} from {} {}", payment.getPaymentAmount(),
-                accountsRepository.findFirstBySsn(ssn).getFirstName(),
-                accountsRepository.findFirstBySsn(ssn).getLastName());
+        LOG.info("Received payment: {}", payment.getPaymentAmount());
 
         Debtor debtor = accountsRepository.findFirstBySsn(ssn);
-        Debt chosenDebt = new Debt();
 
-        for (Debt d : debtor.getSetOfDebts()) {
-            if (d.getId().equals(debtId)) {
-                chosenDebt = d;
-                break;
+        for (Debt chosenDebt : debtor.getSetOfDebts()) {
+            if (chosenDebt.getId().equals(debtId)) {
+
+                chosenDebt.addToSetOfPayments(payment);
+
+                BigDecimal paymentAmount = payment.getPaymentAmount();
+                BigDecimal chosenDebtAmount = chosenDebt.getDebtAmount();
+
+                BigDecimal sumOfDebts = accountsRepository
+                        .findFirstBySsn(ssn)
+                        .getSetOfDebts()
+                        .stream()
+                        .map(debt -> debt.getDebtAmount())
+                        .reduce(BigDecimal.ZERO, (a, b) -> a.add(b));
+
+                if (paymentAmount.compareTo(sumOfDebts) == 1) {
+                    LOG.info("All debts have been paid");
+                    for (Debt d : accountsRepository.findFirstBySsn(ssn).getSetOfDebts()) {
+                        d.setDebtAmount(BigDecimal.ZERO);
+                    }
+                } else if (paymentAmount.compareTo(chosenDebtAmount) != 1) {
+                    LOG.info("Debt with id {} has become actualized", debtId);
+                    chosenDebt.setDebtAmount(chosenDebtAmount.subtract(paymentAmount));
+                } else {
+                    LOG.info("Debt with id {} has become actualized", debtId);
+                    chosenDebt.setDebtAmount(chosenDebtAmount.subtract(paymentAmount));
+                    BigDecimal substraction = paymentAmount.subtract(chosenDebtAmount);
+                    while (substraction.intValue() > 0) {
+// todo
+                        Debt nextDebt = debtor.getSetOfDebts().iterator().next();
+                        nextDebt.setDebtAmount(nextDebt.getDebtAmount().subtract(substraction));
+                        substraction = substraction.subtract(nextDebt.getDebtAmount());
+                    }
+                }
             }
         }
-
-        chosenDebt.addToSetOfPayments(payment);
-
-        BigDecimal paymentAmount = payment.getPaymentAmount();
-        BigDecimal chosenDebtAmount = chosenDebt.getDebtAmount();
-
-        if (paymentAmount.compareTo(chosenDebtAmount) != 1) {
-            LOG.info("Debt with id {} has become actualized", debtId);
-            chosenDebt.setDebtAmount(chosenDebtAmount.subtract(paymentAmount));
-        } else {
-            LOG.info("Debt with id {} has become actualized", debtId);
-            chosenDebt.setDebtAmount(chosenDebtAmount.subtract(paymentAmount));
-            BigDecimal substraction = paymentAmount.subtract(chosenDebtAmount);
-
-            //todo
-            // loop choosing oldest debts to be paid of if payment amount > debt amount
-        }
-
         accountsRepository.save(debtor);
     }
 }
