@@ -17,8 +17,8 @@ public class DataCreator {
 
     public Debtor createDebtor() {
 
-        CreditCard creditCardOne = new CreditCard("98978872537125", "109", "Jakub", "Watus");
-        CreditCard creditCardTwo = new CreditCard("23457590909018", "235", "Jakub", "Watus");
+        CreditCard creditCardOne = new CreditCard("98978872537125", "109", "Jakub", "Watus", "MasterCard", LocalDate.now());
+        CreditCard creditCardTwo = new CreditCard("23457590909018", "235", "Jakub", "Watus","VISA", LocalDate.now());
 
         Payment paymentOne = new Payment(LocalDate.now(), BigDecimal.valueOf(500.00), creditCardOne, "Alivio");
         Payment paymentTwo = new Payment(LocalDate.now(), BigDecimal.valueOf(700.00), creditCardTwo, "Alivio");
@@ -44,7 +44,7 @@ public class DataCreator {
 
     public PaymentForm createPaymentForm() {
 
-        CreditCard creditCard = new CreditCard("77777777777777", "777", "Natalie", "Lopez");
+        CreditCard creditCard = new CreditCard("77777777777777", "777", "Natalie", "Lopez","VISA", LocalDate.now());
         Payment payment = new Payment(LocalDate.now(), BigDecimal.valueOf(955.00), creditCard, "Alivio");
 
         String ssn = "980-122-111";

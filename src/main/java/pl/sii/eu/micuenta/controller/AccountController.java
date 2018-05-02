@@ -7,10 +7,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import pl.sii.eu.micuenta.model.CreditCard;
 import pl.sii.eu.micuenta.model.Debt;
 import pl.sii.eu.micuenta.model.Debtor;
@@ -22,13 +19,12 @@ import pl.sii.eu.micuenta.service.DebtSerializer;
 import pl.sii.eu.micuenta.service.DebtorSerializer;
 import pl.sii.eu.micuenta.service.PaymentSerializer;
 
-import javax.ws.rs.FormParam;
 import javax.ws.rs.core.MediaType;
 import java.math.BigDecimal;
 import java.util.Optional;
 
 @RestController
-@RequestMapping("/micuenta")
+@RequestMapping("/")
 public class AccountController {
 
     private static Logger logger = LoggerFactory.getLogger(AccountController.class);
@@ -62,8 +58,8 @@ public class AccountController {
         }
     }
 
-    @RequestMapping(value = "/balance", produces = MediaType.APPLICATION_JSON, method = RequestMethod.GET)
-    public String getBalance(@FormParam("ssn") String ssn) throws JsonProcessingException {
+    @RequestMapping(value = "/balance/{ssn}", produces = MediaType.APPLICATION_JSON, method = RequestMethod.GET)
+    public String getBalance(@PathVariable String ssn) throws JsonProcessingException {
 
         logger.info("User with ssn: {} has been found by system.", ssn);
 
@@ -119,8 +115,8 @@ public class AccountController {
                     chosenDebt.setDebtAmount(chosenDebtAmount.subtract(paymentAmount));
                 } else {
                     chosenDebt.setDebtAmount(chosenDebtAmount.subtract(paymentAmount));
-                    BigDecimal substraction = paymentAmount.subtract(chosenDebtAmount);
-                    logger.info("Debt with uuid {} has become actualized. After payment user has {} of surplus.", debtUuid, substraction);
+                    BigDecimal subtraction = paymentAmount.subtract(chosenDebtAmount);
+                    logger.info("Debt with uuid {} has become actualized. After payment user has {} of surplus.", debtUuid, subtraction);
                 }
             }
         }

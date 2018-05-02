@@ -9,6 +9,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.test.annotation.Rollback;
 import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.context.junit4.SpringRunner;
 import pl.sii.eu.micuenta.conf.AppConfig;
 import pl.sii.eu.micuenta.conf.DataCreator;
@@ -42,11 +43,12 @@ public class AccountControllerTest {
     private AccountController accountController;
 
     @Test
+    @Sql(scripts = "/sql_scripts/initial_db_state.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
+    @Sql(scripts = "/sql_scripts/clean_db.sql", executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
     public void verifyUserPassed() {
 
         //given
         Debtor debtor = dataCreator.createDebtor();
-        accountsRepository.deleteAll();
         accountsRepository.save(debtor);
 
         Debtor receivedDebtor = dataCreator.createDebtor();
@@ -59,11 +61,12 @@ public class AccountControllerTest {
     }
 
     @Test
+    @Sql(scripts = "/sql_scripts/initial_db_state.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
+    @Sql(scripts = "/sql_scripts/clean_db.sql", executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
     public void verifyUserFailed() {
 
         //given
         Debtor debtor = dataCreator.createDebtor();
-        accountsRepository.deleteAll();
         accountsRepository.save(debtor);
 
         Debtor receivedDebtor = new Debtor();
@@ -76,11 +79,12 @@ public class AccountControllerTest {
     }
 
     @Test
+    @Sql(scripts = "/sql_scripts/initial_db_state.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
+    @Sql(scripts = "/sql_scripts/clean_db.sql", executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
     public void getBalance() throws JsonProcessingException {
 
         //given
         Debtor debtor = dataCreator.createDebtor();
-        accountsRepository.deleteAll();
         accountsRepository.save(debtor);
         String userFirstName = "Jakub";
         String userLastName = "Watus";
@@ -94,13 +98,12 @@ public class AccountControllerTest {
     }
 
     @Test
-//    @Sql(scripts = "/sql_scripts/initial_db_state.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
-//    @Sql(scripts = "/sql_scripts/clean_db.sql", executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
+    @Sql(scripts = "/sql_scripts/initial_db_state.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
+    @Sql(scripts = "/sql_scripts/clean_db.sql", executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
     public void shouldUpdateSetOfPayments() {
 
         //given
         Debtor debtor = dataCreator.createDebtor();
-        accountsRepository.deleteAll();
         accountsRepository.save(debtor);
 
         PaymentForm paymentForm = dataCreator.createPaymentForm();
@@ -122,11 +125,12 @@ public class AccountControllerTest {
     }
 
     @Test
+    @Sql(scripts = "/sql_scripts/initial_db_state.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
+    @Sql(scripts = "/sql_scripts/clean_db.sql", executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
     public void shouldUpdateDebtAmount() {
 
         //given
         Debtor debtor = dataCreator.createDebtor();
-        accountsRepository.deleteAll();
         accountsRepository.save(debtor);
 
         PaymentForm paymentForm = dataCreator.createPaymentForm();
@@ -148,11 +152,12 @@ public class AccountControllerTest {
     }
 
     @Test
+    @Sql(scripts = "/sql_scripts/initial_db_state.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
+    @Sql(scripts = "/sql_scripts/clean_db.sql", executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
     public void shouldPaidAllDebts() {
 
         //given
         Debtor debtor = dataCreator.createDebtor();
-        accountsRepository.deleteAll();
         accountsRepository.save(debtor);
 
         PaymentForm paymentForm = dataCreator.createPaymentForm();
@@ -169,7 +174,6 @@ public class AccountControllerTest {
         for (Debt d : debtor.getSetOfDebts()) {
             resultAmount.add(d.getDebtAmount());
         }
-
         assertEquals(expectedAmount, resultAmount);
     }
 }

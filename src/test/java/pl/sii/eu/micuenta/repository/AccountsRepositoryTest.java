@@ -59,7 +59,7 @@ public class AccountsRepositoryTest {
 
         assertThat(expectedPayment.getPaymentAmount()).isEqualTo(resultPayment.getPaymentAmount());
         assertThat(expectedPayment.getPaymentDate()).isEqualTo(resultPayment.getPaymentDate());
-        assertThat(expectedPayment.getCreditCard().getCCNumber()).isEqualTo(resultPayment.getCreditCard().getCCNumber());
+        assertThat(expectedPayment.getCreditCard().getCcNumber()).isEqualTo(resultPayment.getCreditCard().getCcNumber());
         assertThat(expectedPayment.getCreditCard().getCvv()).isEqualTo(resultPayment.getCreditCard().getCvv());
         assertThat(expectedPayment.getCreditCard().getFirstName()).isEqualTo(resultPayment.getCreditCard().getFirstName());
         assertThat(expectedPayment.getCreditCard().getLastName()).isEqualTo(resultPayment.getCreditCard().getLastName());
