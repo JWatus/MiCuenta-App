@@ -13,6 +13,7 @@ public class Payment implements Serializable {
     private Long id;
     private LocalDate paymentDate;
     private BigDecimal paymentAmount;
+    private String clientId;
 
     @OneToOne(cascade = CascadeType.ALL)
     private CreditCard creditCard;
@@ -30,6 +31,10 @@ public class Payment implements Serializable {
 
     public BigDecimal getPaymentAmount() {
         return paymentAmount;
+    }
+
+    public String getClientId() {
+        return clientId;
     }
 
     public CreditCard getCreditCard() {
@@ -52,6 +57,10 @@ public class Payment implements Serializable {
         this.paymentAmount = paymentAmount;
     }
 
+    public void setClientId(String clientId) {
+        this.clientId = clientId;
+    }
+
     public void setCreditCard(CreditCard creditCard) {
         this.creditCard = creditCard;
     }
@@ -63,9 +72,10 @@ public class Payment implements Serializable {
     public Payment() {
     }
 
-    public Payment(LocalDate paymentDate, BigDecimal paymentAmount, CreditCard creditCard) {
+    public Payment(LocalDate paymentDate, BigDecimal paymentAmount, CreditCard creditCard, String clientId) {
         this.paymentDate = paymentDate;
         this.paymentAmount = paymentAmount;
+        this.clientId = clientId;
         this.creditCard = creditCard;
     }
 

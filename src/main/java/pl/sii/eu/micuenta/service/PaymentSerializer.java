@@ -23,6 +23,7 @@ public class PaymentSerializer extends StdSerializer<Payment> {
         jsonGenerator.writeStartObject();
         jsonGenerator.writeNumberField("id", payment.getId());
         jsonGenerator.writeStringField("repaymentDate", payment.getPaymentDate().toString());
+        jsonGenerator.writeStringField("clientId", payment.getClientId());
         jsonGenerator.writeNumberField("paymentAmount", payment.getPaymentAmount());
         jsonGenerator.writeObjectField("creditCard", payment.getCreditCard());
         jsonGenerator.writeEndObject();

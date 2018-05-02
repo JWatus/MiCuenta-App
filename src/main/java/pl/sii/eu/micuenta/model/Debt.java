@@ -16,6 +16,8 @@ public class Debt implements Serializable {
     private Long id;
     private BigDecimal debtAmount;
     private LocalDate repaymentDate;
+    private String uuid;
+    private String debtName;
 
     @ManyToOne
     private Debtor debtor;
@@ -47,6 +49,22 @@ public class Debt implements Serializable {
         this.repaymentDate = repaymentDate;
     }
 
+    public String getUuid() {
+        return uuid;
+    }
+
+    public void setUuid(String uuid) {
+        this.uuid = uuid;
+    }
+
+    public String getDebtName() {
+        return debtName;
+    }
+
+    public void setDebtName(String debtName) {
+        this.debtName = debtName;
+    }
+
     public Debtor getDebtor() {
         return debtor;
     }
@@ -71,9 +89,11 @@ public class Debt implements Serializable {
     public Debt() {
     }
 
-    public Debt(BigDecimal debtAmount, LocalDate repaymentDate, Set<Payment> setOfPayments) {
+    public Debt(BigDecimal debtAmount, LocalDate repaymentDate, Set<Payment> setOfPayments, String uuid, String debtName) {
         this.debtAmount = debtAmount;
         this.repaymentDate = repaymentDate;
+        this.uuid = uuid;
+        this.debtName = debtName;
         this.setOfPayments = new HashSet<>(setOfPayments);
         for (Payment payment : this.setOfPayments) {
             payment.setDebt(this);
