@@ -1,7 +1,6 @@
 package pl.sii.eu.micuenta.model;
 
 import javax.persistence.*;
-import java.io.Serializable;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.Collections;
@@ -9,7 +8,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 @Entity
-public class Debt implements Serializable {
+public class Debt {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

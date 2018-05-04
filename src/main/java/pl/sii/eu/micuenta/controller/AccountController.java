@@ -1,6 +1,5 @@
 package pl.sii.eu.micuenta.controller;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 import org.slf4j.Logger;
@@ -59,7 +58,7 @@ public class AccountController {
     }
 
     @RequestMapping(value = "/balance/{ssn}", produces = MediaType.APPLICATION_JSON, method = RequestMethod.GET)
-    public String getBalance(@PathVariable String ssn) throws JsonProcessingException {
+    public Debtor getBalance(@PathVariable String ssn) {
 
         logger.info("User with ssn: {} has been found by system.", ssn);
 
@@ -67,7 +66,7 @@ public class AccountController {
 
         registerModule(objectMapper);
 
-        return objectMapper.writeValueAsString(debtor);
+        return debtor;
     }
 
     private void registerModule(ObjectMapper objectMapper) {
@@ -80,7 +79,9 @@ public class AccountController {
     }
 
     @RequestMapping(value = "/payment", consumes = MediaType.APPLICATION_JSON, method = RequestMethod.POST)
-    public void getPayment(@RequestBody PaymentForm paymentForm) {
+    public ResponseEntity<String> getPayment(@RequestBody PaymentForm paymentForm) {
+
+        ResponseEntity<String> response = new ResponseEntity(HttpStatus.NOT_FOUND);
 
         Payment payment = paymentForm.getPayment();
         String ssn = paymentForm.getSsn();
@@ -110,17 +111,21 @@ public class AccountController {
                     for (Debt d : accountsRepository.findFirstBySsn(ssn).getSetOfDebts()) {
                         d.setDebtAmount(BigDecimal.ZERO);
                     }
+                    response = new ResponseEntity(HttpStatus.OK);
                 } else if (paymentAmount.compareTo(chosenDebtAmount) != 1) {
                     logger.info("Debt with uuid {} has become actualized.", debtUuid);
                     chosenDebt.setDebtAmount(chosenDebtAmount.subtract(paymentAmount));
+                    response = new ResponseEntity(HttpStatus.OK);
                 } else {
                     chosenDebt.setDebtAmount(chosenDebtAmount.subtract(paymentAmount));
                     BigDecimal subtraction = paymentAmount.subtract(chosenDebtAmount);
                     logger.info("Debt with uuid {} has become actualized. After payment user has {} of surplus.", debtUuid, subtraction);
+                    response = new ResponseEntity(HttpStatus.OK);
                 }
             }
         }
         accountsRepository.save(debtor);
+        return response;
     }
 }
 

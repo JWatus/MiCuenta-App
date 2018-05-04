@@ -27,7 +27,7 @@ public class CreditCardSerializer extends StdSerializer<CreditCard> {
         jsonGenerator.writeStringField("firstName", creditCard.getFirstName());
         jsonGenerator.writeStringField("lastName", creditCard.getLastName());
         jsonGenerator.writeStringField("issuingNetwork", creditCard.getIssuingNetwork());
-        jsonGenerator.writeStringField("expDate", creditCard.getExpDate().toString());
+        jsonGenerator.writeObjectField("expDate", creditCard.getExpDate());
         jsonGenerator.writeEndObject();
     }
 }

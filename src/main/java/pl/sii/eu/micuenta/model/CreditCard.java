@@ -8,7 +8,7 @@ import java.io.Serializable;
 import java.time.LocalDate;
 
 @Entity
-public class CreditCard implements Serializable {
+public class CreditCard {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

@@ -24,7 +24,7 @@ public class DebtSerializer extends StdSerializer<Debt> {
         jsonGenerator.writeNumberField("id", debt.getId());
         jsonGenerator.writeStringField("uuid", debt.getUuid());
         jsonGenerator.writeNumberField("debtAmount", debt.getDebtAmount());
-        jsonGenerator.writeStringField("repaymentDate", debt.getRepaymentDate().toString());
+        jsonGenerator.writeObjectField("repaymentDate", debt.getRepaymentDate());
         jsonGenerator.writeStringField("debtName", debt.getDebtName());
         jsonGenerator.writeObjectField("listOfPayments", debt.getSetOfPayments());
         jsonGenerator.writeEndObject();

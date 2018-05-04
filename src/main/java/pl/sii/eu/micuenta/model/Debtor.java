@@ -1,11 +1,12 @@
 package pl.sii.eu.micuenta.model;
 
 import javax.persistence.*;
-import java.io.Serializable;
-import java.util.*;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Set;
 
 @Entity
-public class Debtor implements Serializable {
+public class Debtor {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

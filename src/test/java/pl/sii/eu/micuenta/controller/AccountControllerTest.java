@@ -1,6 +1,5 @@
 package pl.sii.eu.micuenta.controller;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import org.assertj.core.api.Assertions;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -81,7 +80,7 @@ public class AccountControllerTest {
     @Test
     @Sql(scripts = "/sql_scripts/initial_db_state.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
     @Sql(scripts = "/sql_scripts/clean_db.sql", executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
-    public void getBalance() throws JsonProcessingException {
+    public void getBalance() {
 
         //given
         Debtor debtor = dataCreator.createDebtor();
@@ -90,11 +89,11 @@ public class AccountControllerTest {
         String userLastName = "Watus";
 
         //when
-        String result = accountController.getBalance("980-122-111");
+        Debtor result = accountController.getBalance("980-122-111");
 
         //then
-        Assertions.assertThat(result.contains(userFirstName)).isTrue();
-        Assertions.assertThat(result.contains(userLastName)).isTrue();
+        Assertions.assertThat(result.getFirstName().contains(userFirstName)).isTrue();
+        Assertions.assertThat(result.getLastName().contains(userLastName)).isTrue();
     }
 
     @Test
