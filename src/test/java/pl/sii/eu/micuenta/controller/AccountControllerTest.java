@@ -20,6 +20,7 @@ import pl.sii.eu.micuenta.repository.AccountsRepository;
 import javax.persistence.EntityManager;
 import javax.transaction.Transactional;
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 
 import static org.junit.Assert.assertEquals;
 
@@ -44,7 +45,7 @@ public class AccountControllerTest {
     @Test
     @Sql(scripts = "/sql_scripts/initial_db_state.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
     @Sql(scripts = "/sql_scripts/clean_db.sql", executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
-    public void verifyUserPassed() {
+    public void shouldResponseWithHttpStatusOkWhenUserWasSuccessfullyVerified() {
 
         //given
         Debtor debtor = dataCreator.createDebtor();
@@ -62,7 +63,7 @@ public class AccountControllerTest {
     @Test
     @Sql(scripts = "/sql_scripts/initial_db_state.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
     @Sql(scripts = "/sql_scripts/clean_db.sql", executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
-    public void verifyUserFailed() {
+    public void shouldResponseWithHttpStatusNotFoundWhenUserWasNotSuccessfullyVerified() {
 
         //given
         Debtor debtor = dataCreator.createDebtor();
@@ -140,7 +141,7 @@ public class AccountControllerTest {
         entityManager.flush();
 
         //then
-        BigDecimal expectedAmount = BigDecimal.valueOf(49045.0);
+        BigDecimal expectedAmount = BigDecimal.valueOf(49045.0).setScale(2, RoundingMode.HALF_EVEN);
         BigDecimal resultAmount = BigDecimal.ZERO;
         for (Debt d : debtor.getSetOfDebts()) {
             if (d.getUuid().equals(debtUuid)) {
@@ -160,7 +161,7 @@ public class AccountControllerTest {
         accountsRepository.save(debtor);
 
         PaymentForm paymentForm = dataCreator.createPaymentForm();
-        paymentForm.getPayment().setPaymentAmount(BigDecimal.valueOf(200000));
+        paymentForm.getPayment().setPaymentAmount(BigDecimal.valueOf(200000).setScale(2, RoundingMode.HALF_EVEN));
 
         //when
         accountController.getPayment(paymentForm);

@@ -20,6 +20,7 @@ import pl.sii.eu.micuenta.service.PaymentSerializer;
 
 import javax.ws.rs.core.MediaType;
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.Optional;
 
 @RestController
@@ -87,7 +88,12 @@ public class AccountController {
         String ssn = paymentForm.getSsn();
         String debtUuid = paymentForm.getDebtUuid();
 
-        logger.info("Received payment: {}.", payment.getPaymentAmount());
+        if (payment.getPaymentAmount().compareTo(BigDecimal.ZERO) == 1)
+            logger.info("Received payment: {}.", payment.getPaymentAmount());
+        else {
+            logger.info("Not valid payment amount.");
+            return response = new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        }
 
         Debtor debtor = accountsRepository.findFirstBySsn(ssn);
 
@@ -96,15 +102,18 @@ public class AccountController {
 
                 chosenDebt.addToSetOfPayments(payment);
 
-                BigDecimal paymentAmount = payment.getPaymentAmount();
-                BigDecimal chosenDebtAmount = chosenDebt.getDebtAmount();
+                logger.info("Set of payments for chosen debt have been actualized.");
+
+                BigDecimal paymentAmount = payment.getPaymentAmount().setScale(2, RoundingMode.HALF_EVEN);
+                BigDecimal chosenDebtAmount = chosenDebt.getDebtAmount().setScale(2, RoundingMode.HALF_EVEN);
 
                 BigDecimal sumOfDebts = accountsRepository
                         .findFirstBySsn(ssn)
                         .getSetOfDebts()
                         .stream()
-                        .map(debt -> debt.getDebtAmount())
-                        .reduce(BigDecimal.ZERO, (a, b) -> a.add(b));
+                        .map(Debt::getDebtAmount)
+                        .reduce(BigDecimal.ZERO, BigDecimal::add)
+                        .setScale(2, RoundingMode.HALF_EVEN);
 
                 if (paymentAmount.compareTo(sumOfDebts) == 1) {
                     logger.info("All debts have been paid.");
@@ -113,13 +122,13 @@ public class AccountController {
                     }
                     response = new ResponseEntity(HttpStatus.OK);
                 } else if (paymentAmount.compareTo(chosenDebtAmount) != 1) {
-                    logger.info("Debt with uuid {} has become actualized.", debtUuid);
+                    logger.info("Debt with uuid {} has been actualized.", debtUuid);
                     chosenDebt.setDebtAmount(chosenDebtAmount.subtract(paymentAmount));
                     response = new ResponseEntity(HttpStatus.OK);
                 } else {
                     chosenDebt.setDebtAmount(chosenDebtAmount.subtract(paymentAmount));
                     BigDecimal subtraction = paymentAmount.subtract(chosenDebtAmount);
-                    logger.info("Debt with uuid {} has become actualized. After payment user has {} of surplus.", debtUuid, subtraction);
+                    logger.info("Debt with uuid {} has been actualized. After payment user has {} of surplus.", debtUuid, subtraction);
                     response = new ResponseEntity(HttpStatus.OK);
                 }
             }
