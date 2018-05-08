@@ -81,7 +81,7 @@ public class AccountControllerTest {
     @Test
     @Sql(scripts = "/sql_scripts/initial_db_state.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
     @Sql(scripts = "/sql_scripts/clean_db.sql", executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
-    public void getBalance() {
+    public void shouldReturnChosenDebtorWhenDataIsValid() {
 
         //given
         Debtor debtor = dataCreator.createDebtor();
@@ -175,5 +175,64 @@ public class AccountControllerTest {
             resultAmount.add(d.getDebtAmount());
         }
         assertEquals(expectedAmount, resultAmount);
+    }
+
+    @Test
+    @Sql(scripts = "/sql_scripts/initial_db_state.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
+    @Sql(scripts = "/sql_scripts/clean_db.sql", executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
+    public void shouldResponseWithHttpStatusBadRequestWhenPaymentIsZeroOrLess() {
+
+        //given
+        Debtor debtor = dataCreator.createDebtor();
+        accountsRepository.save(debtor);
+
+        PaymentForm paymentForm = dataCreator.createPaymentForm();
+        paymentForm.getPayment().setPaymentAmount(BigDecimal.valueOf(-2000).setScale(2, RoundingMode.HALF_EVEN));
+
+        //when
+        ResponseEntity result = accountController.getPayment(paymentForm);
+        entityManager.flush();
+
+        //then
+        Assertions.assertThat(result).isEqualTo(new ResponseEntity(HttpStatus.BAD_REQUEST));
+    }
+
+    @Test
+    @Sql(scripts = "/sql_scripts/initial_db_state.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
+    @Sql(scripts = "/sql_scripts/clean_db.sql", executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
+    public void shouldResponseWithHttpStatusNotFoundWhenChosenDebtIsNotExist() {
+
+        //given
+        Debtor debtor = dataCreator.createDebtor();
+        accountsRepository.save(debtor);
+
+        PaymentForm paymentForm = dataCreator.createPaymentForm();
+        paymentForm.setDebtUuid("9898989898989");
+
+        //when
+        ResponseEntity result = accountController.getPayment(paymentForm);
+        entityManager.flush();
+
+        //then
+        Assertions.assertThat(result).isEqualTo(new ResponseEntity(HttpStatus.NOT_FOUND));
+    }
+
+    @Test
+    @Sql(scripts = "/sql_scripts/initial_db_state.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
+    @Sql(scripts = "/sql_scripts/clean_db.sql", executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
+    public void shouldResponseWithHttpStatusOkWhenChosenDebtIsValid() {
+
+        //given
+        Debtor debtor = dataCreator.createDebtor();
+        accountsRepository.save(debtor);
+
+        PaymentForm paymentForm = dataCreator.createPaymentForm();
+
+        //when
+        ResponseEntity result = accountController.getPayment(paymentForm);
+        entityManager.flush();
+
+        //then
+        Assertions.assertThat(result).isEqualTo(new ResponseEntity(HttpStatus.OK));
     }
 }

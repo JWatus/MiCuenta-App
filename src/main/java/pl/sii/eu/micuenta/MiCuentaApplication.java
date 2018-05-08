@@ -4,9 +4,9 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 @SpringBootApplication
-public class MicuentaApplication {
+public class MiCuentaApplication {
 
     public static void main(String[] args) {
-        SpringApplication.run(MicuentaApplication.class, args);
+        SpringApplication.run(MiCuentaApplication.class, args);
     }
 }

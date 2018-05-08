@@ -21,6 +21,7 @@ import pl.sii.eu.micuenta.service.PaymentSerializer;
 import javax.ws.rs.core.MediaType;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.util.Collections;
 import java.util.Optional;
 
 @RestController
@@ -42,31 +43,31 @@ public class AccountController {
 
         logger.info("Login attempt : {} {}.", debtor.getFirstName(), debtor.getLastName());
 
-        Optional<Debtor> debtors = accountsRepository.findAll()
-                .stream()
-                .filter(u -> u.getSsn().equals(debtor.getSsn()))
-                .filter(u -> u.getFirstName().equals(debtor.getFirstName()))
-                .filter(u -> u.getLastName().equals(debtor.getLastName()))
-                .findFirst();
+        Debtor foundDebtor = accountsRepository.findFirstBySsnAndFirstNameAndLastName(
+                debtor.getSsn(),
+                debtor.getFirstName(),
+                debtor.getLastName());
 
-        if (debtors.isPresent()) {
+        if (foundDebtor != null) {
             logger.info("Authorization passed.");
-            return new ResponseEntity(HttpStatus.OK);
+            return new ResponseEntity<>(HttpStatus.OK);
         } else {
             logger.info("Authorization failed.");
-            return new ResponseEntity(HttpStatus.NOT_FOUND);
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
     }
 
     @RequestMapping(value = "/balance/{ssn}", produces = MediaType.APPLICATION_JSON, method = RequestMethod.GET)
     public Debtor getBalance(@PathVariable String ssn) {
 
-        logger.info("User with ssn: {} has been found by system.", ssn);
-
         Debtor debtor = accountsRepository.findFirstBySsn(ssn);
 
-        registerModule(objectMapper);
-
+        if (debtor != null) {
+            logger.info("User with ssn: {} has been found by system.", ssn);
+            registerModule(objectMapper);
+        } else {
+            logger.info("User with ssn: {} has not been found by system.", ssn);
+        }
         return debtor;
     }
 
@@ -82,20 +83,32 @@ public class AccountController {
     @RequestMapping(value = "/payment", consumes = MediaType.APPLICATION_JSON, method = RequestMethod.POST)
     public ResponseEntity<String> getPayment(@RequestBody PaymentForm paymentForm) {
 
-        ResponseEntity<String> response = new ResponseEntity(HttpStatus.NOT_FOUND);
+        ResponseEntity<String> response = new ResponseEntity<>(HttpStatus.NOT_FOUND);
 
         Payment payment = paymentForm.getPayment();
         String ssn = paymentForm.getSsn();
         String debtUuid = paymentForm.getDebtUuid();
 
-        if (payment.getPaymentAmount().compareTo(BigDecimal.ZERO) == 1)
-            logger.info("Received payment: {}.", payment.getPaymentAmount());
+        if (payment.getPaymentAmount().compareTo(BigDecimal.ZERO) > 0)
+            logger.info("Received payment: {}.", payment.getPaymentAmount().setScale(2, RoundingMode.HALF_EVEN));
         else {
             logger.info("Not valid payment amount.");
-            return response = new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
 
         Debtor debtor = accountsRepository.findFirstBySsn(ssn);
+
+        
+
+
+        Optional<Debt> oldestDebt = accountsRepository
+                .findFirstBySsn(ssn)
+                .getSetOfDebts()
+                .stream()
+                .sorted((a, b) -> a.getRepaymentDate().compareTo(b.getRepaymentDate()))
+                .limit(1)
+                .findFirst();
+
 
         for (Debt chosenDebt : debtor.getSetOfDebts()) {
             if (chosenDebt.getUuid().equals(debtUuid)) {
@@ -115,21 +128,21 @@ public class AccountController {
                         .reduce(BigDecimal.ZERO, BigDecimal::add)
                         .setScale(2, RoundingMode.HALF_EVEN);
 
-                if (paymentAmount.compareTo(sumOfDebts) == 1) {
+                if (paymentAmount.compareTo(sumOfDebts) > 0) {
                     logger.info("All debts have been paid.");
                     for (Debt d : accountsRepository.findFirstBySsn(ssn).getSetOfDebts()) {
                         d.setDebtAmount(BigDecimal.ZERO);
                     }
-                    response = new ResponseEntity(HttpStatus.OK);
-                } else if (paymentAmount.compareTo(chosenDebtAmount) != 1) {
+                    response = new ResponseEntity<>(HttpStatus.OK);
+                } else if (paymentAmount.compareTo(chosenDebtAmount) <= 0) {
                     logger.info("Debt with uuid {} has been actualized.", debtUuid);
                     chosenDebt.setDebtAmount(chosenDebtAmount.subtract(paymentAmount));
-                    response = new ResponseEntity(HttpStatus.OK);
+                    response = new ResponseEntity<>(HttpStatus.OK);
                 } else {
                     chosenDebt.setDebtAmount(chosenDebtAmount.subtract(paymentAmount));
                     BigDecimal subtraction = paymentAmount.subtract(chosenDebtAmount);
                     logger.info("Debt with uuid {} has been actualized. After payment user has {} of surplus.", debtUuid, subtraction);
-                    response = new ResponseEntity(HttpStatus.OK);
+                    response = new ResponseEntity<>(HttpStatus.OK);
                 }
             }
         }
