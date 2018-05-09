@@ -1,5 +1,7 @@
 package pl.sii.eu.micuenta.model;
 
+import io.swagger.annotations.ApiModelProperty;
+
 import javax.persistence.*;
 import java.util.Collections;
 import java.util.HashSet;
@@ -11,10 +13,14 @@ public class Debtor {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+    @ApiModelProperty(access = "private", name = "firstName", example = "Jakub", value = "Debtor's first name")
     private String firstName;
+    @ApiModelProperty(access = "private", name = "lastName", example = "Watus", value = "Debtor's last name")
     private String lastName;
+    @ApiModelProperty(access = "private", name = "ssn", example = "980-122-111", value = "Debtor's social security number")
     private String ssn;
 
+    @ApiModelProperty(access = "private", name = "setOfDebts", dataType = "Set", value = "Debtor's set of debts")
     @OneToMany(mappedBy = "debtor", fetch = FetchType.EAGER, cascade = CascadeType.ALL)
     private Set<Debt> setOfDebts;
 

@@ -2,16 +2,23 @@ package pl.sii.eu.micuenta.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.module.SimpleModule;
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.ApiResponse;
+import io.swagger.annotations.ApiResponses;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import pl.sii.eu.micuenta.conf.DataCreator;
 import pl.sii.eu.micuenta.model.CreditCard;
 import pl.sii.eu.micuenta.model.Debt;
 import pl.sii.eu.micuenta.model.Debtor;
 import pl.sii.eu.micuenta.model.Payment;
-import pl.sii.eu.micuenta.model.form.PaymentForm;
+import pl.sii.eu.micuenta.model.form.PaymentDeclaration;
+import pl.sii.eu.micuenta.model.form.PaymentPlan;
+import pl.sii.eu.micuenta.model.form.PlannedPayment;
 import pl.sii.eu.micuenta.repository.AccountsRepository;
 import pl.sii.eu.micuenta.service.CreditCardSerializer;
 import pl.sii.eu.micuenta.service.DebtSerializer;
@@ -21,9 +28,14 @@ import pl.sii.eu.micuenta.service.PaymentSerializer;
 import javax.ws.rs.core.MediaType;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
-import java.util.Collections;
-import java.util.Optional;
+import java.util.Comparator;
+import java.util.List;
+import java.util.stream.Collectors;
 
+@Api(value = "AccountController",
+        consumes = "debtor presence in MiCuenta application",
+        produces = "debtor with list of debts",
+        description = "AccountController class manages handling debtors and their debts")
 @RestController
 @RequestMapping("/")
 public class AccountController {
@@ -38,6 +50,13 @@ public class AccountController {
         this.objectMapper = objectMapper;
     }
 
+    @ApiOperation(value = "Returns: answer if debtor is present in MiCuenta application")
+    @ApiResponses(
+            value = {
+                    @ApiResponse(code = 200, message = "Debtor is found in MiCuenta"),
+                    @ApiResponse(code = 404, message = "Debtor is not found in MiCuenta")
+            }
+    )
     @RequestMapping(value = "/login", consumes = MediaType.APPLICATION_JSON, method = RequestMethod.POST)
     public ResponseEntity<String> login(@RequestBody Debtor debtor) {
 
@@ -57,6 +76,7 @@ public class AccountController {
         }
     }
 
+    @ApiOperation(value = "Returns: debtor with list of debts")
     @RequestMapping(value = "/balance/{ssn}", produces = MediaType.APPLICATION_JSON, method = RequestMethod.GET)
     public Debtor getBalance(@PathVariable String ssn) {
 
@@ -80,74 +100,109 @@ public class AccountController {
         objectMapper.registerModule(module);
     }
 
-    @RequestMapping(value = "/payment", consumes = MediaType.APPLICATION_JSON, method = RequestMethod.POST)
-    public ResponseEntity<String> getPayment(@RequestBody PaymentForm paymentForm) {
+    @RequestMapping(value = "/paymentPlan", consumes = MediaType.APPLICATION_JSON, method = RequestMethod.POST)
+    public PaymentPlan getPaymentPlan(@RequestBody PaymentDeclaration paymentDeclaration) {
 
-        ResponseEntity<String> response = new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        BigDecimal paymentAmount = paymentDeclaration.getPaymentAmount();
+        String ssn = paymentDeclaration.getSsn();
+        String debtUuid = paymentDeclaration.getDebtUuid();
 
-        Payment payment = paymentForm.getPayment();
-        String ssn = paymentForm.getSsn();
-        String debtUuid = paymentForm.getDebtUuid();
-
-        if (payment.getPaymentAmount().compareTo(BigDecimal.ZERO) > 0)
-            logger.info("Received payment: {}.", payment.getPaymentAmount().setScale(2, RoundingMode.HALF_EVEN));
-        else {
-            logger.info("Not valid payment amount.");
-            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
-        }
+        if (notValidPaymentAmount(paymentAmount)) return null;
 
         Debtor debtor = accountsRepository.findFirstBySsn(ssn);
 
-        
-
-
-        Optional<Debt> oldestDebt = accountsRepository
-                .findFirstBySsn(ssn)
-                .getSetOfDebts()
-                .stream()
-                .sorted((a, b) -> a.getRepaymentDate().compareTo(b.getRepaymentDate()))
-                .limit(1)
-                .findFirst();
-
-
         for (Debt chosenDebt : debtor.getSetOfDebts()) {
-            if (chosenDebt.getUuid().equals(debtUuid)) {
-
-                chosenDebt.addToSetOfPayments(payment);
-
-                logger.info("Set of payments for chosen debt have been actualized.");
-
-                BigDecimal paymentAmount = payment.getPaymentAmount().setScale(2, RoundingMode.HALF_EVEN);
-                BigDecimal chosenDebtAmount = chosenDebt.getDebtAmount().setScale(2, RoundingMode.HALF_EVEN);
-
-                BigDecimal sumOfDebts = accountsRepository
-                        .findFirstBySsn(ssn)
-                        .getSetOfDebts()
-                        .stream()
-                        .map(Debt::getDebtAmount)
-                        .reduce(BigDecimal.ZERO, BigDecimal::add)
-                        .setScale(2, RoundingMode.HALF_EVEN);
-
-                if (paymentAmount.compareTo(sumOfDebts) > 0) {
-                    logger.info("All debts have been paid.");
-                    for (Debt d : accountsRepository.findFirstBySsn(ssn).getSetOfDebts()) {
-                        d.setDebtAmount(BigDecimal.ZERO);
-                    }
-                    response = new ResponseEntity<>(HttpStatus.OK);
-                } else if (paymentAmount.compareTo(chosenDebtAmount) <= 0) {
-                    logger.info("Debt with uuid {} has been actualized.", debtUuid);
-                    chosenDebt.setDebtAmount(chosenDebtAmount.subtract(paymentAmount));
-                    response = new ResponseEntity<>(HttpStatus.OK);
-                } else {
-                    chosenDebt.setDebtAmount(chosenDebtAmount.subtract(paymentAmount));
-                    BigDecimal subtraction = paymentAmount.subtract(chosenDebtAmount);
-                    logger.info("Debt with uuid {} has been actualized. After payment user has {} of surplus.", debtUuid, subtraction);
-                    response = new ResponseEntity<>(HttpStatus.OK);
-                }
+            if (debtUuid.isEmpty()) {
+                return handlingEmptyDebtId(debtor, paymentAmount);
+            } else if (chosenDebt.getUuid().equals(debtUuid)) {
+                handlingChosenDebtId(chosenDebt, paymentAmount);
             }
         }
-        accountsRepository.save(debtor);
-        return response;
+
+        DataCreator dataCreator = new DataCreator();
+        return dataCreator.createPaymentPlan();
+    }
+
+    private boolean notValidPaymentAmount(BigDecimal paymentAmount) {
+        if (paymentAmount.compareTo(BigDecimal.ZERO) > 0)
+            logger.info("Received payment: {}.", paymentAmount.setScale(2, RoundingMode.HALF_EVEN));
+        else {
+            logger.info("Not valid payment amount.");
+            return true;
+        }
+        return false;
+    }
+
+    private PaymentPlan handlingEmptyDebtId(Debtor debtor, BigDecimal paymentAmount) {
+
+        PaymentPlan paymentPlan = new PaymentPlan();
+
+        BigDecimal sumOfDebts = getSumOfDebts(debtor);
+
+        List<Debt> oldestDebts = getListOfOldestDebts(debtor);
+
+        boolean isPaymentBiggerThanSumOfDebts = paymentAmount.compareTo(sumOfDebts) > 0;
+
+        if (!oldestDebts.isEmpty() && !isPaymentBiggerThanSumOfDebts) {
+            return payOldestDebts(paymentAmount, paymentPlan, oldestDebts);
+        } else {
+            paymentPlan = new PaymentPlan("There is no more debts left to be paid.", debtor.getSsn(), null);
+            logger.info("No more debts left to be paid.");
+        }
+        return paymentPlan;
+    }
+
+    private List<Debt> getListOfOldestDebts(Debtor debtor) {
+        return debtor
+                .getSetOfDebts()
+                .stream()
+                .filter(d -> d.getDebtAmount().compareTo(BigDecimal.ZERO) > 0)
+                .sorted(Comparator.comparing(Debt::getRepaymentDate))
+                .collect(Collectors.toList());
+    }
+
+    private BigDecimal getSumOfDebts(Debtor debtor) {
+        return debtor
+                .getSetOfDebts()
+                .stream()
+                .map(Debt::getDebtAmount)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+    }
+
+    private PaymentPlan payOldestDebts(BigDecimal paymentAmount, PaymentPlan paymentPlan, List<Debt> oldestDebts) {
+        for (int i = 0; i < oldestDebts.size(); i++) {
+            Debt oldestDebt = oldestDebts.get(i);
+            BigDecimal sumOfPayments = getSumOfPayments(oldestDebt);
+
+            BigDecimal debtAmount = oldestDebt.getDebtAmount();
+            BigDecimal debtLeftToPaid = debtAmount.subtract(sumOfPayments);
+
+            if (paymentAmount.compareTo(debtLeftToPaid) <= 0) {
+                paymentPlan
+                        .getPlannedPaymentList()
+                        .add(new PlannedPayment(oldestDebt.getUuid(), paymentAmount));
+                break;
+            } else {
+                paymentPlan
+                        .getPlannedPaymentList()
+                        .add(new PlannedPayment(oldestDebt.getUuid(), paymentAmount));
+                paymentAmount = paymentAmount.subtract(debtLeftToPaid);
+            }
+            logger.info("Set of payments for debt {} have been actualized.", oldestDebt.getUuid());
+        }
+        return paymentPlan;
+    }
+
+    private BigDecimal getSumOfPayments(Debt oldestDebt) {
+        return oldestDebt
+                        .getSetOfPayments()
+                        .stream()
+                        .map(Payment::getPaymentAmount)
+                        .reduce(BigDecimal.ZERO, BigDecimal::add);
+    }
+
+    private void handlingChosenDebtId(Debt chosenDebt, BigDecimal paymentAmount) {
+
     }
 }
 

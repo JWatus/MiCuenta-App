@@ -1,0 +1,9 @@
+logging:
+  level:
+    ROOT: WARN
+    pl.sii.eu.micuenta: INFO
+    org.springframework.test: WARN
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
+    file: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
+  file: ../logs/micuenta.log

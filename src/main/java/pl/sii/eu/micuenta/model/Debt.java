@@ -1,5 +1,7 @@
 package pl.sii.eu.micuenta.model;
 
+import io.swagger.annotations.ApiModelProperty;
+
 import javax.persistence.*;
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -13,14 +15,20 @@ public class Debt {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+    @ApiModelProperty(access = "private", name = "debtAmount", example = "50000.0", value = "Amount of Debt")
     private BigDecimal debtAmount;
+    @ApiModelProperty(access = "private", name = "repaymentDate", example = "2018-05-08", value = "Date of repayment")
     private LocalDate repaymentDate;
+    @ApiModelProperty(access = "private", name = "uuid", example = "999888777666", value = "Universal unique identifier")
     private String uuid;
+    @ApiModelProperty(access = "private", name = "debtName", example = "fastLoan", value = "Name of the loan")
     private String debtName;
 
+    @ApiModelProperty(access = "private", name = "debtor", example = "{}", value = "Debtor")
     @ManyToOne
     private Debtor debtor;
 
+    @ApiModelProperty(access = "private", name = "setOfPayments", dataType = "Set", value = "Debtor's set of payments")
     @OneToMany(mappedBy = "debt", fetch = FetchType.EAGER, cascade = CascadeType.ALL)
     private Set<Payment> setOfPayments;
 
