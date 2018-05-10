@@ -13,17 +13,10 @@ import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.context.junit4.SpringRunner;
 import pl.sii.eu.micuenta.conf.AppConfig;
 import pl.sii.eu.micuenta.conf.DataCreator;
-import pl.sii.eu.micuenta.model.Debt;
 import pl.sii.eu.micuenta.model.Debtor;
-import pl.sii.eu.micuenta.model.form.PaymentDeclaration;
 import pl.sii.eu.micuenta.repository.AccountsRepository;
 
-import javax.persistence.EntityManager;
 import javax.transaction.Transactional;
-import java.math.BigDecimal;
-import java.math.RoundingMode;
-
-import static org.junit.Assert.assertEquals;
 
 @RunWith(SpringRunner.class)
 @ContextConfiguration(classes = {AppConfig.class})
@@ -31,9 +24,6 @@ import static org.junit.Assert.assertEquals;
 @Rollback
 @SpringBootTest
 public class AccountControllerTest {
-
-    @Autowired
-    private EntityManager entityManager;
 
     @Autowired
     private DataCreator dataCreator;
@@ -98,6 +88,4 @@ public class AccountControllerTest {
         Assertions.assertThat(result.getFirstName().contains(userFirstName)).isTrue();
         Assertions.assertThat(result.getLastName().contains(userLastName)).isTrue();
     }
-
-
 }
