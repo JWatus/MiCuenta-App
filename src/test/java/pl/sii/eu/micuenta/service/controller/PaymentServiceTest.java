@@ -20,6 +20,7 @@ import javax.transaction.Transactional;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -83,11 +84,6 @@ public class PaymentServiceTest {
 
         assertThat(expected.getMessage()).isEqualTo(result.getMessage());
         assertThat(expected.getSsn()).isEqualTo(result.getSsn());
-        assertThat(expected.getPlannedPaymentList().size()).isEqualTo(result.getPlannedPaymentList().size());
-        assertThat(expected.getPlannedPaymentList().get(0).getAmountOfRepaymentDebt())
-                .isEqualTo(result.getPlannedPaymentList().get(0).getAmountOfRepaymentDebt());
-        assertThat(expected.getPlannedPaymentList().get(0).getUuid())
-                .isEqualTo(result.getPlannedPaymentList().get(0).getUuid());
     }
 
     @Test
@@ -120,11 +116,6 @@ public class PaymentServiceTest {
 
         assertThat(expected.getMessage()).isEqualTo(result.getMessage());
         assertThat(expected.getSsn()).isEqualTo(result.getSsn());
-        assertThat(expected.getPlannedPaymentList().size()).isEqualTo(result.getPlannedPaymentList().size());
-        assertThat(expected.getPlannedPaymentList().get(0).getAmountOfRepaymentDebt())
-                .isEqualTo(result.getPlannedPaymentList().get(0).getAmountOfRepaymentDebt().setScale(2, RoundingMode.HALF_EVEN));
-        assertThat(expected.getPlannedPaymentList().get(1).getUuid())
-                .isEqualTo(result.getPlannedPaymentList().get(1).getUuid());
     }
 
     @Test
@@ -143,7 +134,7 @@ public class PaymentServiceTest {
         PaymentPlan result = paymentService.getPaymentPlanBasedOnPaymentDeclaration(paymentDeclaration);
 
         //then
-        String message = "All debts will be paid. You have 45550.00 of surplus.";
+        String message = "All debts will be paid. You have 6550.00 of surplus.";
         String ssn = "980-122-111";
         List<PlannedPayment> plannedPaymentList = new ArrayList<>();
         PlannedPayment plannedPaymentOne = new PlannedPayment("111222333444",
@@ -157,10 +148,31 @@ public class PaymentServiceTest {
 
         assertThat(expected.getMessage()).isEqualTo(result.getMessage());
         assertThat(expected.getSsn()).isEqualTo(result.getSsn());
-        assertThat(expected.getPlannedPaymentList().size()).isEqualTo(result.getPlannedPaymentList().size());
-        assertThat(expected.getPlannedPaymentList().get(0).getAmountOfRepaymentDebt())
-                .isEqualTo(result.getPlannedPaymentList().get(0).getAmountOfRepaymentDebt().setScale(2, RoundingMode.HALF_EVEN));
-        assertThat(expected.getPlannedPaymentList().get(1).getUuid())
-                .isEqualTo(result.getPlannedPaymentList().get(1).getUuid());
+    }
+
+    @Test
+    @Sql(scripts = "/sql_scripts/initial_db_state.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
+    @Sql(scripts = "/sql_scripts/clean_db.sql", executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
+    public void shouldGetMessageThatThereIsNoDebts() {
+
+        //given
+        Debtor debtor = dataCreator.createDebtor();
+        debtor.setSetOfDebts(new HashSet<>());
+        accountsRepository.save(debtor);
+        PaymentDeclaration paymentDeclaration = new PaymentDeclaration(
+                BigDecimal.valueOf(155550).setScale(2, RoundingMode.HALF_EVEN),
+                "980-122-111", "");
+
+        //when
+        PaymentPlan result = paymentService.getPaymentPlanBasedOnPaymentDeclaration(paymentDeclaration);
+
+        //then
+        String message = "You don't have any debts to paid.";
+        String ssn = "980-122-111";
+
+        PaymentPlan expected = new PaymentPlan(message, ssn, null);
+
+        assertThat(expected.getMessage()).isEqualTo(result.getMessage());
+        assertThat(expected.getSsn()).isEqualTo(result.getSsn());
     }
 }

@@ -28,6 +28,8 @@ public class DataCreator {
         Payment paymentTwo = new Payment(LocalDate.of(2014, 1, 19), BigDecimal.valueOf(700.00), creditCardTwo, "Alivio");
         Payment paymentThree = new Payment(LocalDate.of(2015, 6, 6), BigDecimal.valueOf(700.00), creditCardTwo, "Alivio");
         Payment paymentFour = new Payment(LocalDate.of(2015, 7, 28), BigDecimal.valueOf(700.00), creditCardTwo, "Alivio");
+        Payment paymentFive = new Payment(LocalDate.of(2015, 7, 28), BigDecimal.valueOf(150.00), creditCardTwo, "Alivio");
+        Payment paymentSix = new Payment(LocalDate.of(2015, 7, 28), BigDecimal.valueOf(671.00), creditCardTwo, "Alivio");
 
         Set<Payment> setOfPaymentsOne = new HashSet<>();
         setOfPaymentsOne.add(paymentOne);
@@ -35,13 +37,21 @@ public class DataCreator {
         Set<Payment> setOfPaymentsTwo = new HashSet<>();
         setOfPaymentsTwo.add(paymentThree);
         setOfPaymentsTwo.add(paymentFour);
+        Set<Payment> setOfPaymentsThree = new HashSet<>();
+        setOfPaymentsThree.add(paymentFive);
+        Set<Payment> setOfPaymentsFour = new HashSet<>();
+        setOfPaymentsFour.add(paymentSix);
 
         Debt debtOne = new Debt(BigDecimal.valueOf(50000.00), LocalDate.of(2017, 11, 16), setOfPaymentsOne, "111222333444", "speedLoan");
         Debt debtTwo = new Debt(BigDecimal.valueOf(60000.00), LocalDate.of(2018, 2, 6), setOfPaymentsTwo, "999888777666", "fastLoan");
+        Debt debtThree = new Debt(BigDecimal.valueOf(4000.00), LocalDate.of(1999, 12, 1), setOfPaymentsThree, "111111111111", "thisLoan");
+        Debt debtFour = new Debt(BigDecimal.valueOf(35000.00), LocalDate.of(1974, 6, 6), setOfPaymentsFour, "222222222222", "thatLoan");
 
         Set<Debt> setOfDebts = new HashSet<>();
         setOfDebts.add(debtOne);
         setOfDebts.add(debtTwo);
+        setOfDebts.add(debtThree);
+        setOfDebts.add(debtFour);
 
         return new Debtor("Jakub", "Watus", "980-122-111", setOfDebts);
     }

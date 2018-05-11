@@ -38,15 +38,15 @@ public class PaymentService {
         if (notValidPaymentAmount(paymentAmount, ssn))
             return new PaymentPlan("Payment amount is not valid.", null, null);
 
-        PaymentPlan paymentPlan = new PaymentPlan();
+        PaymentPlan paymentPlan = new PaymentPlan("There is no debt with uuid " + debtUuid, null, null);
         Debtor debtor = accountsRepository.findFirstBySsn(ssn);
 
-        if (debtUuid.isEmpty()) {
+        if (debtUuid.isEmpty())
             return handlingEmptyDebtId(debtor, paymentAmount);
-        }
+
         for (Debt chosenDebt : debtor.getSetOfDebts()) {
             if (chosenDebt.getUuid().equals(debtUuid))
-                return handlingChosenDebtId(chosenDebt, paymentAmount);
+                return handlingChosenDebtId(chosenDebt, paymentAmount, debtor);
         }
         return paymentPlan;
     }
@@ -63,6 +63,7 @@ public class PaymentService {
     }
 
     private PaymentPlan handlingEmptyDebtId(Debtor debtor, BigDecimal paymentAmount) {
+
         List<PlannedPayment> plannedPaymentList = new ArrayList<>();
         String ssn = debtor.getSsn();
         String message = "Your payment amount is " + paymentAmount;
@@ -72,16 +73,69 @@ public class PaymentService {
 
         List<Debt> oldestDebts = getListOfOldestDebts(debtor);
 
-        boolean isNotPaymentBiggerThanSumOfDebts = paymentAmount.compareTo(sumOfDebts) < 0;
+        boolean isNotPaymentBiggerThanSumOfDebts = paymentAmount.compareTo(sumOfDebts) <= 0;
+        boolean isPaymentBiggerThanSumOfDebts = paymentAmount.compareTo(sumOfDebts) > 0;
 
         if (!oldestDebts.isEmpty() && isNotPaymentBiggerThanSumOfDebts)
             return payOldestDebts(paymentAmount, paymentPlan, oldestDebts);
-        else
+        else if (!oldestDebts.isEmpty() && isPaymentBiggerThanSumOfDebts)
             return payAllDebts(debtor, paymentAmount, plannedPaymentList, sumOfDebts);
+        else
+            return new PaymentPlan("You don't have any debts to paid.", ssn, null);
     }
 
-    private PaymentPlan handlingChosenDebtId(Debt chosenDebt, BigDecimal paymentAmount) {
-        PaymentPlan paymentPlan = new PaymentPlan();
+    private PaymentPlan handlingChosenDebtId(Debt chosenDebt, BigDecimal paymentAmount, Debtor debtor) {
+
+        List<PlannedPayment> plannedPaymentList = new ArrayList<>();
+        String ssn = debtor.getSsn();
+        String message = "Your payment amount is " + paymentAmount;
+        PaymentPlan paymentPlan = new PaymentPlan(message, ssn, plannedPaymentList);
+
+        BigDecimal sumOfDebts = getSumOfDebts(debtor);
+        List<Debt> oldestDebts = getListOfOldestDebts(debtor);
+
+        boolean isNotPaymentBiggerThanSumOfDebts = paymentAmount.compareTo(sumOfDebts) <= 0;
+        boolean isPaymentBiggerThanSumOfDebts = paymentAmount.compareTo(sumOfDebts) > 0;
+
+        if (!oldestDebts.isEmpty() && isNotPaymentBiggerThanSumOfDebts) {
+            if (getPaymentPlanWithChosenDebt(chosenDebt, paymentAmount, paymentPlan))
+                return payOldestDebtsWithoutChosen(paymentAmount, paymentPlan, oldestDebts, chosenDebt);
+        } else if (!oldestDebts.isEmpty() && isPaymentBiggerThanSumOfDebts)
+            return payAllDebts(debtor, paymentAmount, plannedPaymentList, sumOfDebts);
+        else
+            return new PaymentPlan("You don't have any debts to paid.", ssn, null);
+
+        return paymentPlan;
+    }
+
+    private boolean getPaymentPlanWithChosenDebt(Debt chosenDebt, BigDecimal paymentAmount, PaymentPlan paymentPlan) {
+
+        logger.info("Payments list for debt {} is ready to be actualized.", chosenDebt.getUuid());
+
+        BigDecimal sumOfPayments = getSumOfPayments(chosenDebt);
+        BigDecimal debtAmount = chosenDebt.getDebtAmount();
+        BigDecimal debtLeftToPaid = debtAmount.subtract(sumOfPayments);
+
+        if (paymentAmount.compareTo(debtLeftToPaid) <= 0) {
+            addPaymentToPlan(paymentAmount, paymentPlan, chosenDebt);
+        } else
+            return true;
+
+        return false;
+    }
+
+    private PaymentPlan payOldestDebtsWithoutChosen(BigDecimal paymentAmount, PaymentPlan paymentPlan, List<Debt> oldestDebts, Debt chosenDebt) {
+
+        addPaymentToPlan(chosenDebt.getDebtAmount().subtract(getSumOfPayments(chosenDebt)), paymentPlan, chosenDebt);
+        paymentAmount = paymentAmount.subtract(chosenDebt.getDebtAmount());
+
+        List<Debt> debtsWithoutChosen = new ArrayList<>();
+
+        for (Debt d : oldestDebts) {
+            if (!d.getUuid().equals(chosenDebt.getUuid()))
+                debtsWithoutChosen.add(d);
+        }
+        payOldestDebts(paymentAmount, paymentPlan, debtsWithoutChosen);
         return paymentPlan;
     }
 
@@ -108,7 +162,9 @@ public class PaymentService {
     }
 
     private PaymentPlan payAllDebts(Debtor debtor, BigDecimal paymentAmount, List<PlannedPayment> plannedPaymentList, BigDecimal sumOfDebts) {
+
         logger.info("All debts can been paid. Surplus: {}.", paymentAmount.subtract(sumOfDebts));
+
         PaymentPlan paymentPlan = new PaymentPlan
                 ("All debts will be paid. You have " + paymentAmount.subtract(sumOfDebts) + " of surplus.",
                         debtor.getSsn(),
@@ -120,9 +176,9 @@ public class PaymentService {
         return paymentPlan;
     }
 
-    private void addPaymentToPlan(BigDecimal paymentAmount, PaymentPlan paymentPlan, Debt oldestDebt) {
+    private void addPaymentToPlan(BigDecimal paymentAmount, PaymentPlan paymentPlan, Debt debt) {
         List<PlannedPayment> plannedPaymentList = paymentPlan.getPlannedPaymentList();
-        plannedPaymentList.add(new PlannedPayment(oldestDebt.getUuid(), paymentAmount));
+        plannedPaymentList.add(new PlannedPayment(debt.getUuid(), paymentAmount));
         paymentPlan.setPlannedPaymentList(plannedPaymentList);
     }
 
