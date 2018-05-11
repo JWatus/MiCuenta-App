@@ -1,19 +1,16 @@
 package pl.sii.eu.micuenta.service.controller;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.module.SimpleModule;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
-import pl.sii.eu.micuenta.controller.AccountController;
-import pl.sii.eu.micuenta.model.CreditCard;
+import org.springframework.web.bind.annotation.RequestBody;
 import pl.sii.eu.micuenta.model.Debt;
 import pl.sii.eu.micuenta.model.Debtor;
 import pl.sii.eu.micuenta.model.Payment;
+import pl.sii.eu.micuenta.model.form.PaymentDeclaration;
 import pl.sii.eu.micuenta.model.form.PaymentPlan;
 import pl.sii.eu.micuenta.model.form.PlannedPayment;
-import pl.sii.eu.micuenta.service.serializers.CreditCardSerializer;
-import pl.sii.eu.micuenta.service.serializers.DebtSerializer;
-import pl.sii.eu.micuenta.service.serializers.DebtorSerializer;
-import pl.sii.eu.micuenta.service.serializers.PaymentSerializer;
+import pl.sii.eu.micuenta.repository.AccountsRepository;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -23,31 +20,52 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
-public class ControllerService {
+public class PaymentService {
 
-    public void registerModule(ObjectMapper objectMapper) {
-        SimpleModule module = new SimpleModule();
-        module.addSerializer(Debtor.class, new DebtorSerializer());
-        module.addSerializer(Debt.class, new DebtSerializer());
-        module.addSerializer(Payment.class, new PaymentSerializer());
-        module.addSerializer(CreditCard.class, new CreditCardSerializer());
-        objectMapper.registerModule(module);
+    private AccountsRepository accountsRepository;
+
+    public PaymentService(AccountsRepository accountsRepository) {
+        this.accountsRepository = accountsRepository;
     }
 
-    public boolean notValidPaymentAmount(BigDecimal paymentAmount) {
+    private static final Logger logger = LoggerFactory.getLogger(PaymentService.class);
+
+    public PaymentPlan getPaymentPlanBasedOnPaymentDeclaration(@RequestBody PaymentDeclaration paymentDeclaration) {
+        BigDecimal paymentAmount = paymentDeclaration.getPaymentAmount().setScale(2, RoundingMode.HALF_EVEN);
+        String ssn = paymentDeclaration.getSsn();
+        String debtUuid = paymentDeclaration.getDebtUuid();
+
+        if (notValidPaymentAmount(paymentAmount, ssn))
+            return new PaymentPlan("Payment amount is not valid.", null, null);
+
+        PaymentPlan paymentPlan = new PaymentPlan();
+        Debtor debtor = accountsRepository.findFirstBySsn(ssn);
+
+        if (debtUuid.isEmpty()) {
+            return handlingEmptyDebtId(debtor, paymentAmount);
+        }
+        for (Debt chosenDebt : debtor.getSetOfDebts()) {
+            if (chosenDebt.getUuid().equals(debtUuid))
+                return handlingChosenDebtId(chosenDebt, paymentAmount);
+        }
+        return paymentPlan;
+    }
+
+    private boolean notValidPaymentAmount(BigDecimal paymentAmount, String ssn) {
         if (paymentAmount.compareTo(BigDecimal.ZERO) > 0)
-            AccountController.logger.info("Received payment: {}.", paymentAmount.setScale(2, RoundingMode.HALF_EVEN));
+            logger.info("Received payment: {} for user with ssn {}.",
+                    paymentAmount.setScale(2, RoundingMode.HALF_EVEN), ssn);
         else {
-            AccountController.logger.info("Not valid payment amount.");
+            logger.info("Not valid payment amount.");
             return true;
         }
         return false;
     }
 
-    public PaymentPlan handlingEmptyDebtId(Debtor debtor, BigDecimal paymentAmount) {
+    private PaymentPlan handlingEmptyDebtId(Debtor debtor, BigDecimal paymentAmount) {
         List<PlannedPayment> plannedPaymentList = new ArrayList<>();
         String ssn = debtor.getSsn();
-        String message = "Your payment amount is  " + paymentAmount;
+        String message = "Your payment amount is " + paymentAmount;
         PaymentPlan paymentPlan = new PaymentPlan(message, ssn, plannedPaymentList);
 
         BigDecimal sumOfDebts = getSumOfDebts(debtor);
@@ -62,13 +80,14 @@ public class ControllerService {
             return payAllDebts(debtor, paymentAmount, plannedPaymentList, sumOfDebts);
     }
 
-    public void handlingChosenDebtId(Debt chosenDebt, BigDecimal paymentAmount) {
-
+    private PaymentPlan handlingChosenDebtId(Debt chosenDebt, BigDecimal paymentAmount) {
+        PaymentPlan paymentPlan = new PaymentPlan();
+        return paymentPlan;
     }
 
     private PaymentPlan payOldestDebts(BigDecimal paymentAmount, PaymentPlan paymentPlan, List<Debt> oldestDebts) {
 
-        AccountController.logger.info("PaymentPlan for {} has been actualized.", paymentPlan.getSsn());
+        logger.info("PaymentPlan for {} has been actualized.", paymentPlan.getSsn());
 
         for (int i = 0; i < oldestDebts.size(); i++) {
             Debt oldestDebt = oldestDebts.get(i);
@@ -77,7 +96,7 @@ public class ControllerService {
             BigDecimal debtAmount = oldestDebt.getDebtAmount();
             BigDecimal debtLeftToPaid = debtAmount.subtract(sumOfPayments);
 
-            AccountController.logger.info("Payments list for debt {} is ready to be actualized.", oldestDebt.getUuid());
+            logger.info("Payments list for debt {} is ready to be actualized.", oldestDebt.getUuid());
 
             if (paymentAmount.compareTo(debtLeftToPaid) <= 0) {
                 addPaymentToPlan(paymentAmount, paymentPlan, oldestDebt);
@@ -89,7 +108,7 @@ public class ControllerService {
     }
 
     private PaymentPlan payAllDebts(Debtor debtor, BigDecimal paymentAmount, List<PlannedPayment> plannedPaymentList, BigDecimal sumOfDebts) {
-        AccountController.logger.info("All debts can been paid. Surplus: {}.", paymentAmount.subtract(sumOfDebts));
+        logger.info("All debts can been paid. Surplus: {}.", paymentAmount.subtract(sumOfDebts));
         PaymentPlan paymentPlan = new PaymentPlan
                 ("All debts will be paid. You have " + paymentAmount.subtract(sumOfDebts) + " of surplus.",
                         debtor.getSsn(),

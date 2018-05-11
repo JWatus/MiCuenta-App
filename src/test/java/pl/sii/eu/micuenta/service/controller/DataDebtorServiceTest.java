@@ -1,4 +1,4 @@
-package pl.sii.eu.micuenta.controller;
+package pl.sii.eu.micuenta.service.controller;
 
 import org.assertj.core.api.Assertions;
 import org.junit.Test;
@@ -23,7 +23,7 @@ import javax.transaction.Transactional;
 @Transactional
 @Rollback
 @SpringBootTest
-public class AccountControllerTest {
+public class DataDebtorServiceTest {
 
     @Autowired
     private DataCreator dataCreator;
@@ -32,7 +32,7 @@ public class AccountControllerTest {
     private AccountsRepository accountsRepository;
 
     @Autowired
-    private AccountController accountController;
+    private DataDebtorService dataDebtorService;
 
     @Test
     @Sql(scripts = "/sql_scripts/initial_db_state.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
@@ -46,7 +46,7 @@ public class AccountControllerTest {
         Debtor receivedDebtor = dataCreator.createDebtor();
 
         //when
-        ResponseEntity result = accountController.login(receivedDebtor);
+        ResponseEntity result = dataDebtorService.validateDebtorsData(receivedDebtor);
 
         //then
         Assertions.assertThat(result).isEqualTo(new ResponseEntity(HttpStatus.OK));
@@ -64,7 +64,7 @@ public class AccountControllerTest {
         Debtor receivedDebtor = new Debtor();
 
         //when
-        ResponseEntity result = accountController.login(receivedDebtor);
+        ResponseEntity result = dataDebtorService.validateDebtorsData(receivedDebtor);
 
         //then
         Assertions.assertThat(result).isEqualTo(new ResponseEntity(HttpStatus.NOT_FOUND));
@@ -82,7 +82,7 @@ public class AccountControllerTest {
         String userLastName = "Watus";
 
         //when
-        Debtor result = accountController.getBalance("980-122-111");
+        Debtor result = dataDebtorService.getDebtorBySsn("980-122-111");
 
         //then
         Assertions.assertThat(result.getFirstName().contains(userFirstName)).isTrue();

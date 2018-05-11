@@ -57,14 +57,12 @@ public class DataCreator {
 
     public PaymentPlan createPaymentPlan() {
 
-        PlannedPayment plannedPaymentOne = new PlannedPayment("1212323434545", BigDecimal.valueOf(800.00));
-        PlannedPayment plannedPaymentTwo = new PlannedPayment("1111111111111", BigDecimal.valueOf(755.00));
-        PlannedPayment plannedPaymentThree = new PlannedPayment("1111111222222", BigDecimal.valueOf(435.00));
+        PlannedPayment plannedPaymentOne = new PlannedPayment("111222333444", BigDecimal.valueOf(567.58));
+        PlannedPayment plannedPaymentTwo = new PlannedPayment("999888777666", BigDecimal.valueOf(755.06));
 
         List<PlannedPayment> plannedPaymentList = new ArrayList<>();
         plannedPaymentList.add(plannedPaymentOne);
         plannedPaymentList.add(plannedPaymentTwo);
-        plannedPaymentList.add(plannedPaymentThree);
 
         String ssn = "980-122-111";
         String message = "Eldo";
