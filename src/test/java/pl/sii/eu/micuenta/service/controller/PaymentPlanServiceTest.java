@@ -20,6 +20,7 @@ import javax.transaction.Transactional;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.ArrayList;
+import static java.util.Collections.emptyList;
 import java.util.HashSet;
 import java.util.List;
 
@@ -30,10 +31,10 @@ import static org.assertj.core.api.Assertions.assertThat;
 @Transactional
 @Rollback
 @SpringBootTest
-public class PaymentServiceTest {
+public class PaymentPlanServiceTest {
 
     @Autowired
-    private PaymentService paymentService;
+    private PaymentPlanService paymentPlanService;
     @Autowired
     private AccountsRepository accountsRepository;
     @Autowired
@@ -48,7 +49,7 @@ public class PaymentServiceTest {
         PaymentDeclaration paymentDeclaration = new PaymentDeclaration(BigDecimal.valueOf(-4560), "980-122-111", "");
 
         //when
-        PaymentPlan result = paymentService.getPaymentPlanBasedOnPaymentDeclaration(paymentDeclaration);
+        PaymentPlan result = paymentPlanService.getPaymentPlanBasedOnPaymentDeclaration(paymentDeclaration);
 
         //then
         String message = "Payment amount is not valid.";
@@ -70,7 +71,7 @@ public class PaymentServiceTest {
                 "980-122-111", "");
 
         //when
-        PaymentPlan result = paymentService.getPaymentPlanBasedOnPaymentDeclaration(paymentDeclaration);
+        PaymentPlan result = paymentPlanService.getPaymentPlanBasedOnPaymentDeclaration(paymentDeclaration);
 
         //then
         String message = "Your payment amount is 450.00";
@@ -99,7 +100,7 @@ public class PaymentServiceTest {
                 "980-122-111", "");
 
         //when
-        PaymentPlan result = paymentService.getPaymentPlanBasedOnPaymentDeclaration(paymentDeclaration);
+        PaymentPlan result = paymentPlanService.getPaymentPlanBasedOnPaymentDeclaration(paymentDeclaration);
 
         //then
         String message = "Your payment amount is 55550.00";
@@ -131,7 +132,7 @@ public class PaymentServiceTest {
                 "980-122-111", "");
 
         //when
-        PaymentPlan result = paymentService.getPaymentPlanBasedOnPaymentDeclaration(paymentDeclaration);
+        PaymentPlan result = paymentPlanService.getPaymentPlanBasedOnPaymentDeclaration(paymentDeclaration);
 
         //then
         String message = "All debts will be paid. You have 6550.00 of surplus.";
@@ -164,13 +165,13 @@ public class PaymentServiceTest {
                 "980-122-111", "");
 
         //when
-        PaymentPlan result = paymentService.getPaymentPlanBasedOnPaymentDeclaration(paymentDeclaration);
+        PaymentPlan result = paymentPlanService.getPaymentPlanBasedOnPaymentDeclaration(paymentDeclaration);
 
         //then
         String message = "You don't have any debts to paid.";
         String ssn = "980-122-111";
 
-        PaymentPlan expected = new PaymentPlan(message, ssn, null);
+        PaymentPlan expected = new PaymentPlan(message, ssn, emptyList());
 
         assertThat(expected.getMessage()).isEqualTo(result.getMessage());
         assertThat(expected.getSsn()).isEqualTo(result.getSsn());

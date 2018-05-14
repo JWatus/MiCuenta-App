@@ -6,7 +6,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.RequestBody;
 import pl.sii.eu.micuenta.model.Debt;
 import pl.sii.eu.micuenta.model.Debtor;
-import pl.sii.eu.micuenta.model.Payment;
 import pl.sii.eu.micuenta.model.form.PaymentDeclaration;
 import pl.sii.eu.micuenta.model.form.PaymentPlan;
 import pl.sii.eu.micuenta.model.form.PlannedPayment;
@@ -15,51 +14,57 @@ import pl.sii.eu.micuenta.repository.AccountsRepository;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.List;
-import java.util.stream.Collectors;
+
+import static java.util.Collections.emptyList;
 
 @Service
-public class PaymentService {
+public class PaymentPlanService {
 
+    private final DebtCalculatorService debtCalculatorService;
     private AccountsRepository accountsRepository;
 
-    public PaymentService(AccountsRepository accountsRepository) {
+    public PaymentPlanService(AccountsRepository accountsRepository, DebtCalculatorService debtCalculatorService) {
         this.accountsRepository = accountsRepository;
+        this.debtCalculatorService = debtCalculatorService;
     }
 
-    private static final Logger logger = LoggerFactory.getLogger(PaymentService.class);
+    private static final Logger logger = LoggerFactory.getLogger(PaymentPlanService.class);
 
     public PaymentPlan getPaymentPlanBasedOnPaymentDeclaration(@RequestBody PaymentDeclaration paymentDeclaration) {
         BigDecimal paymentAmount = paymentDeclaration.getPaymentAmount().setScale(2, RoundingMode.HALF_EVEN);
         String ssn = paymentDeclaration.getSsn();
         String debtUuid = paymentDeclaration.getDebtUuid();
 
-        if (notValidPaymentAmount(paymentAmount, ssn))
-            return new PaymentPlan("Payment amount is not valid.", null, null);
+        if (notValidPaymentAmount(paymentAmount, ssn)) {
+            return new PaymentPlan("Payment amount is not valid.", ssn, emptyList());
+        }
 
-        PaymentPlan paymentPlan = new PaymentPlan("There is no debt with uuid " + debtUuid, null, null);
+        PaymentPlan paymentPlan = new PaymentPlan("There is no debt with uuid " + debtUuid, ssn, emptyList());
         Debtor debtor = accountsRepository.findFirstBySsn(ssn);
 
-        if (debtUuid.isEmpty())
+        if (debtUuid.isEmpty()) {
             return handlingEmptyDebtId(debtor, paymentAmount);
+        }
 
         for (Debt chosenDebt : debtor.getSetOfDebts()) {
-            if (chosenDebt.getUuid().equals(debtUuid))
+            if (chosenDebt.getUuid().equals(debtUuid)) {
                 return handlingChosenDebtId(chosenDebt, paymentAmount, debtor);
+            }
         }
+
         return paymentPlan;
     }
 
     private boolean notValidPaymentAmount(BigDecimal paymentAmount, String ssn) {
-        if (paymentAmount.compareTo(BigDecimal.ZERO) > 0)
+        if (paymentAmount.compareTo(BigDecimal.ZERO) > 0) {
             logger.info("Received payment: {} for user with ssn {}.",
                     paymentAmount.setScale(2, RoundingMode.HALF_EVEN), ssn);
-        else {
+            return false;
+        } else {
             logger.info("Not valid payment amount.");
             return true;
         }
-        return false;
     }
 
     private PaymentPlan handlingEmptyDebtId(Debtor debtor, BigDecimal paymentAmount) {
@@ -69,19 +74,20 @@ public class PaymentService {
         String message = "Your payment amount is " + paymentAmount;
         PaymentPlan paymentPlan = new PaymentPlan(message, ssn, plannedPaymentList);
 
-        BigDecimal sumOfDebts = getSumOfDebts(debtor);
+        BigDecimal sumOfDebts = debtCalculatorService.getSumOfDebts(debtor);
 
-        List<Debt> oldestDebts = getListOfOldestDebts(debtor);
+        List<Debt> oldestDebts = debtCalculatorService.getListOfOldestDebts(debtor);
 
-        boolean isNotPaymentBiggerThanSumOfDebts = paymentAmount.compareTo(sumOfDebts) <= 0;
-        boolean isPaymentBiggerThanSumOfDebts = paymentAmount.compareTo(sumOfDebts) > 0;
+        boolean paymentIsNotBiggerThanSumOfDebts = paymentAmount.compareTo(sumOfDebts) <= 0;
+        boolean paymentIsBiggerThanSumOfDebts = paymentAmount.compareTo(sumOfDebts) > 0;
 
-        if (!oldestDebts.isEmpty() && isNotPaymentBiggerThanSumOfDebts)
+        if (!oldestDebts.isEmpty() && paymentIsNotBiggerThanSumOfDebts) {
             return payOldestDebts(paymentAmount, paymentPlan, oldestDebts);
-        else if (!oldestDebts.isEmpty() && isPaymentBiggerThanSumOfDebts)
+        } else if (!oldestDebts.isEmpty() && paymentIsBiggerThanSumOfDebts) {
             return payAllDebts(debtor, paymentAmount, plannedPaymentList, sumOfDebts);
-        else
-            return new PaymentPlan("You don't have any debts to paid.", ssn, null);
+        } else {
+            return new PaymentPlan("You don't have any debts to paid.", ssn, emptyList());
+        }
     }
 
     private PaymentPlan handlingChosenDebtId(Debt chosenDebt, BigDecimal paymentAmount, Debtor debtor) {
@@ -91,49 +97,45 @@ public class PaymentService {
         String message = "Your payment amount is " + paymentAmount;
         PaymentPlan paymentPlan = new PaymentPlan(message, ssn, plannedPaymentList);
 
-        BigDecimal sumOfDebts = getSumOfDebts(debtor);
-        List<Debt> oldestDebts = getListOfOldestDebts(debtor);
+        BigDecimal sumOfDebts = debtCalculatorService.getSumOfDebts(debtor);
+        List<Debt> oldestDebts = debtCalculatorService.getListOfOldestDebts(debtor);
 
-        boolean isNotPaymentBiggerThanSumOfDebts = paymentAmount.compareTo(sumOfDebts) <= 0;
-        boolean isPaymentBiggerThanSumOfDebts = paymentAmount.compareTo(sumOfDebts) > 0;
+        boolean paymentIsNotBiggerThanSumOfDebts = paymentAmount.compareTo(sumOfDebts) <= 0;
+        boolean paymentIsBiggerThanSumOfDebts = paymentAmount.compareTo(sumOfDebts) > 0;
 
-        if (!oldestDebts.isEmpty() && isNotPaymentBiggerThanSumOfDebts) {
-            if (getPaymentPlanWithChosenDebt(chosenDebt, paymentAmount, paymentPlan))
-                return payOldestDebtsWithoutChosen(paymentAmount, paymentPlan, oldestDebts, chosenDebt);
-        } else if (!oldestDebts.isEmpty() && isPaymentBiggerThanSumOfDebts)
+        if (!oldestDebts.isEmpty() && paymentIsNotBiggerThanSumOfDebts) {
+            return createPaymentPlanDependingOnAmount(chosenDebt, paymentAmount, paymentPlan, oldestDebts);
+        } else if (!oldestDebts.isEmpty() && paymentIsBiggerThanSumOfDebts) {
             return payAllDebts(debtor, paymentAmount, plannedPaymentList, sumOfDebts);
-        else
-            return new PaymentPlan("You don't have any debts to paid.", ssn, null);
-
-        return paymentPlan;
+        } else {
+            return new PaymentPlan("You don't have any debts to paid.", ssn, emptyList());
+        }
     }
 
-    private boolean getPaymentPlanWithChosenDebt(Debt chosenDebt, BigDecimal paymentAmount, PaymentPlan paymentPlan) {
+    private PaymentPlan createPaymentPlanDependingOnAmount(Debt chosenDebt, BigDecimal paymentAmount, PaymentPlan paymentPlan, List<Debt> oldestDebts) {
+        BigDecimal debtLeftToPaid = debtCalculatorService.getDebtLeftToPaid(chosenDebt);
 
         logger.info("Payments list for debt {} is ready to be actualized.", chosenDebt.getUuid());
 
-        BigDecimal sumOfPayments = getSumOfPayments(chosenDebt);
-        BigDecimal debtAmount = chosenDebt.getDebtAmount();
-        BigDecimal debtLeftToPaid = debtAmount.subtract(sumOfPayments);
-
         if (paymentAmount.compareTo(debtLeftToPaid) <= 0) {
             addPaymentToPlan(paymentAmount, paymentPlan, chosenDebt);
-        } else
-            return true;
-
-        return false;
+            return paymentPlan;
+        } else {
+            return payChosenDebtAndOthersByDate(paymentAmount, paymentPlan, oldestDebts, chosenDebt);
+        }
     }
 
-    private PaymentPlan payOldestDebtsWithoutChosen(BigDecimal paymentAmount, PaymentPlan paymentPlan, List<Debt> oldestDebts, Debt chosenDebt) {
+    private PaymentPlan payChosenDebtAndOthersByDate(BigDecimal paymentAmount, PaymentPlan paymentPlan, List<Debt> oldestDebts, Debt chosenDebt) {
 
-        addPaymentToPlan(chosenDebt.getDebtAmount().subtract(getSumOfPayments(chosenDebt)), paymentPlan, chosenDebt);
+        addPaymentToPlan(chosenDebt.getDebtAmount().subtract(debtCalculatorService.getSumOfPayments(chosenDebt)), paymentPlan, chosenDebt);
         paymentAmount = paymentAmount.subtract(chosenDebt.getDebtAmount());
 
         List<Debt> debtsWithoutChosen = new ArrayList<>();
 
         for (Debt d : oldestDebts) {
-            if (!d.getUuid().equals(chosenDebt.getUuid()))
+            if (!d.getUuid().equals(chosenDebt.getUuid())) {
                 debtsWithoutChosen.add(d);
+            }
         }
         payOldestDebts(paymentAmount, paymentPlan, debtsWithoutChosen);
         return paymentPlan;
@@ -145,18 +147,16 @@ public class PaymentService {
 
         for (int i = 0; i < oldestDebts.size(); i++) {
             Debt oldestDebt = oldestDebts.get(i);
-            BigDecimal sumOfPayments = getSumOfPayments(oldestDebt);
-
-            BigDecimal debtAmount = oldestDebt.getDebtAmount();
-            BigDecimal debtLeftToPaid = debtAmount.subtract(sumOfPayments);
+            BigDecimal debtLeftToPaid = debtCalculatorService.getDebtLeftToPaid(oldestDebt);
 
             logger.info("Payments list for debt {} is ready to be actualized.", oldestDebt.getUuid());
 
             if (paymentAmount.compareTo(debtLeftToPaid) <= 0) {
                 addPaymentToPlan(paymentAmount, paymentPlan, oldestDebt);
                 break;
-            } else
+            } else {
                 paymentAmount = addPaymentToPlanAndGetRemainingPaymentAmount(paymentAmount, paymentPlan, oldestDebt, debtLeftToPaid);
+            }
         }
         return paymentPlan;
     }
@@ -166,11 +166,9 @@ public class PaymentService {
         logger.info("All debts can been paid. Surplus: {}.", paymentAmount.subtract(sumOfDebts));
 
         PaymentPlan paymentPlan = new PaymentPlan
-                ("All debts will be paid. You have " + paymentAmount.subtract(sumOfDebts) + " of surplus.",
-                        debtor.getSsn(),
-                        plannedPaymentList);
+                ("All debts will be paid. You have " + paymentAmount.subtract(sumOfDebts) + " of surplus.", debtor.getSsn(), plannedPaymentList);
         for (Debt d : debtor.getSetOfDebts()) {
-            BigDecimal sumOfPayments = getSumOfPayments(d);
+            BigDecimal sumOfPayments = debtCalculatorService.getSumOfPayments(d);
             plannedPaymentList.add(new PlannedPayment(d.getUuid(), d.getDebtAmount().subtract(sumOfPayments)));
         }
         return paymentPlan;
@@ -182,36 +180,11 @@ public class PaymentService {
         paymentPlan.setPlannedPaymentList(plannedPaymentList);
     }
 
-    private BigDecimal addPaymentToPlanAndGetRemainingPaymentAmount(BigDecimal paymentAmount, PaymentPlan paymentPlan, Debt oldestDebt, BigDecimal debtLeftToPaid) {
+    private BigDecimal addPaymentToPlanAndGetRemainingPaymentAmount(BigDecimal paymentAmount, PaymentPlan paymentPlan, Debt debt, BigDecimal debtLeftToPaid) {
         paymentPlan
                 .getPlannedPaymentList()
-                .add(new PlannedPayment(oldestDebt.getUuid(), debtLeftToPaid));
+                .add(new PlannedPayment(debt.getUuid(), debtLeftToPaid));
         paymentAmount = paymentAmount.subtract(debtLeftToPaid);
         return paymentAmount;
-    }
-
-    private List<Debt> getListOfOldestDebts(Debtor debtor) {
-        return debtor
-                .getSetOfDebts()
-                .stream()
-                .filter(d -> d.getDebtAmount().compareTo(BigDecimal.ZERO) > 0)
-                .sorted(Comparator.comparing(Debt::getRepaymentDate))
-                .collect(Collectors.toList());
-    }
-
-    private BigDecimal getSumOfDebts(Debtor debtor) {
-        return debtor
-                .getSetOfDebts()
-                .stream()
-                .map(Debt::getDebtAmount)
-                .reduce(BigDecimal.ZERO, BigDecimal::add);
-    }
-
-    private BigDecimal getSumOfPayments(Debt oldestDebt) {
-        return oldestDebt
-                .getSetOfPayments()
-                .stream()
-                .map(Payment::getPaymentAmount)
-                .reduce(BigDecimal.ZERO, BigDecimal::add);
     }
 }
