@@ -21,12 +21,16 @@ import static java.util.Collections.emptyList;
 @Service
 public class PaymentPlanService {
 
-    private final DebtCalculatorService debtCalculatorService;
+    private DebtCalculatorService debtCalculatorService;
     private AccountsRepository accountsRepository;
+    private ValidationService validationService;
 
-    public PaymentPlanService(AccountsRepository accountsRepository, DebtCalculatorService debtCalculatorService) {
+    public PaymentPlanService(AccountsRepository accountsRepository,
+                              DebtCalculatorService debtCalculatorService,
+                              ValidationService validationService) {
         this.accountsRepository = accountsRepository;
         this.debtCalculatorService = debtCalculatorService;
+        this.validationService = validationService;
     }
 
     private static final Logger logger = LoggerFactory.getLogger(PaymentPlanService.class);
@@ -36,7 +40,7 @@ public class PaymentPlanService {
         String ssn = paymentDeclaration.getSsn();
         String debtUuid = paymentDeclaration.getDebtUuid();
 
-        if (notValidPaymentAmount(paymentAmount, ssn)) {
+        if (validationService.notValidPaymentAmount(paymentAmount, ssn)) {
             return new PaymentPlan("Payment amount is not valid.", ssn, emptyList());
         }
 
@@ -54,17 +58,6 @@ public class PaymentPlanService {
         }
 
         return paymentPlan;
-    }
-
-    private boolean notValidPaymentAmount(BigDecimal paymentAmount, String ssn) {
-        if (paymentAmount.compareTo(BigDecimal.ZERO) > 0) {
-            logger.info("Received payment: {} for user with ssn {}.",
-                    paymentAmount.setScale(2, RoundingMode.HALF_EVEN), ssn);
-            return false;
-        } else {
-            logger.info("Not valid payment amount.");
-            return true;
-        }
     }
 
     private PaymentPlan handlingEmptyDebtId(Debtor debtor, BigDecimal paymentAmount) {

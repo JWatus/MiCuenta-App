@@ -4,16 +4,12 @@ import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import pl.sii.eu.micuenta.model.Debt;
 import pl.sii.eu.micuenta.model.Debtor;
 import pl.sii.eu.micuenta.model.form.PaymentConfirmation;
 import pl.sii.eu.micuenta.model.form.PaymentDeclaration;
 import pl.sii.eu.micuenta.model.form.PaymentPlan;
-import pl.sii.eu.micuenta.repository.AccountsRepository;
 import pl.sii.eu.micuenta.service.controller.DataDebtorService;
 import pl.sii.eu.micuenta.service.controller.PaymentPlanService;
 import pl.sii.eu.micuenta.service.controller.UpdatePaymentService;
@@ -65,9 +61,9 @@ public class AccountController {
     }
 
     @RequestMapping(value = "/paymentmethods/creditcard", consumes = MediaType.APPLICATION_JSON, method = RequestMethod.POST)
-    public void updatePayments(@RequestBody PaymentConfirmation paymentConfirmation) {
+    public ResponseEntity updatePayments(@RequestBody PaymentConfirmation paymentConfirmation) {
 
-        updatePaymentService.updateDebtsPaymentsBasedOnPaymentConfirmation(paymentConfirmation);
+        return updatePaymentService.updateDebtsPaymentsBasedOnPaymentConfirmation(paymentConfirmation);
     }
 }
 

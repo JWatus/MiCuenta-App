@@ -2,42 +2,41 @@ package pl.sii.eu.micuenta.service.controller;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.RequestBody;
-import pl.sii.eu.micuenta.model.CreditCard;
 import pl.sii.eu.micuenta.model.Debt;
 import pl.sii.eu.micuenta.model.Debtor;
 import pl.sii.eu.micuenta.model.Payment;
 import pl.sii.eu.micuenta.model.form.PaymentConfirmation;
 import pl.sii.eu.micuenta.model.form.PaymentDeclaration;
-import pl.sii.eu.micuenta.model.form.PaymentPlan;
-import pl.sii.eu.micuenta.model.form.PlannedPayment;
 import pl.sii.eu.micuenta.repository.AccountsRepository;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
-
-import static java.util.Collections.emptyList;
 
 @Service
 public class UpdatePaymentService {
 
+    private ValidationService validationService;
     private AccountsRepository accountsRepository;
     private DebtCalculatorService debtCalculatorService;
 
-    public UpdatePaymentService(AccountsRepository accountsRepository, DebtCalculatorService debtCalculatorService) {
+    public UpdatePaymentService(AccountsRepository accountsRepository,
+                                DebtCalculatorService debtCalculatorService,
+                                ValidationService validationService) {
         this.debtCalculatorService = debtCalculatorService;
         this.accountsRepository = accountsRepository;
+        this.validationService = validationService;
     }
 
     private static final Logger logger = LoggerFactory.getLogger(UpdatePaymentService.class);
 
-    public PaymentPlan updateDebtsPaymentsBasedOnPaymentConfirmation(@RequestBody PaymentConfirmation paymentConfirmation) {
+    public ResponseEntity updateDebtsPaymentsBasedOnPaymentConfirmation(@RequestBody PaymentConfirmation paymentConfirmation) {
 
         PaymentDeclaration paymentDeclaration = paymentConfirmation.getPaymentDeclaration();
 
@@ -45,31 +44,30 @@ public class UpdatePaymentService {
         String ssn = paymentDeclaration.getSsn();
         String debtUuid = paymentDeclaration.getDebtUuid();
 
-        PaymentPlan paymentPlan = new PaymentPlan("There is no debt with uuid " + debtUuid, ssn, emptyList());
+        if (validationService.notValidPaymentAmount(paymentAmount, ssn)) {
+            return new ResponseEntity<String>(HttpStatus.BAD_REQUEST);
+        }
+
+        ResponseEntity<String> responseEntity = new ResponseEntity<>(HttpStatus.NOT_FOUND);
         Debtor debtor = accountsRepository.findFirstBySsn(ssn);
 
         if (debtUuid.isEmpty()) {
-            return handlingEmptyDebtId(debtor, paymentAmount, paymentConfirmation);
+            handlingEmptyDebtId(debtor, paymentConfirmation);
+            return new ResponseEntity<String>(HttpStatus.OK);
         }
 
         for (Debt chosenDebt : debtor.getSetOfDebts()) {
             if (chosenDebt.getUuid().equals(debtUuid)) {
-                return handlingChosenDebtId(chosenDebt, paymentAmount, debtor, paymentConfirmation);
+                handlingChosenDebtId(chosenDebt, debtor, paymentConfirmation);
+                return new ResponseEntity<String>(HttpStatus.OK);
             }
         }
-        accountsRepository.save(debtor);
-        return paymentPlan;
+        return responseEntity;
     }
 
-    private PaymentPlan handlingEmptyDebtId(
-            Debtor debtor,
-            BigDecimal paymentAmount,
-            PaymentConfirmation paymentConfirmation) {
+    private void handlingEmptyDebtId(Debtor debtor, PaymentConfirmation paymentConfirmation) {
 
-        List<PlannedPayment> plannedPaymentList = new ArrayList<>();
-        String ssn = debtor.getSsn();
-        String message = "Your payment amount is " + paymentAmount;
-        PaymentPlan paymentPlan = new PaymentPlan(message, ssn, plannedPaymentList);
+        BigDecimal paymentAmount = paymentConfirmation.getPaymentDeclaration().getPaymentAmount();
 
         BigDecimal sumOfDebts = debtCalculatorService.getSumOfDebts(debtor);
 
@@ -79,24 +77,15 @@ public class UpdatePaymentService {
         boolean paymentIsBiggerThanSumOfDebts = paymentAmount.compareTo(sumOfDebts) > 0;
 
         if (!oldestDebts.isEmpty() && paymentIsNotBiggerThanSumOfDebts) {
-            return payOldestDebts(paymentAmount, paymentPlan, oldestDebts, paymentConfirmation);
+            payOldestDebts(paymentAmount, oldestDebts, paymentConfirmation);
         } else if (!oldestDebts.isEmpty() && paymentIsBiggerThanSumOfDebts) {
-            return payAllDebts(debtor, paymentAmount, plannedPaymentList, sumOfDebts);
-        } else {
-            return new PaymentPlan("You don't have any debts to paid.", ssn, emptyList());
+            payAllDebts(debtor, sumOfDebts, paymentConfirmation);
         }
     }
 
-    private PaymentPlan handlingChosenDebtId(
-            Debt chosenDebt,
-            BigDecimal paymentAmount,
-            Debtor debtor,
-            PaymentConfirmation paymentConfirmation) {
+    private void handlingChosenDebtId(Debt chosenDebt, Debtor debtor, PaymentConfirmation paymentConfirmation) {
 
-        List<PlannedPayment> plannedPaymentList = new ArrayList<>();
-        String ssn = debtor.getSsn();
-        String message = "Your payment amount is " + paymentAmount;
-        PaymentPlan paymentPlan = new PaymentPlan(message, ssn, plannedPaymentList);
+        BigDecimal paymentAmount = paymentConfirmation.getPaymentDeclaration().getPaymentAmount();
 
         BigDecimal sumOfDebts = debtCalculatorService.getSumOfDebts(debtor);
         List<Debt> oldestDebts = debtCalculatorService.getListOfOldestDebts(debtor);
@@ -105,134 +94,110 @@ public class UpdatePaymentService {
         boolean paymentIsBiggerThanSumOfDebts = paymentAmount.compareTo(sumOfDebts) > 0;
 
         if (!oldestDebts.isEmpty() && paymentIsNotBiggerThanSumOfDebts) {
-            return createPaymentPlanDependingOnAmount(chosenDebt, paymentAmount, paymentPlan, oldestDebts, paymentConfirmation);
+            createPaymentPlanDependingOnAmount(chosenDebt, paymentAmount, oldestDebts, paymentConfirmation);
         } else if (!oldestDebts.isEmpty() && paymentIsBiggerThanSumOfDebts) {
-            return payAllDebts(debtor, paymentAmount, plannedPaymentList, sumOfDebts);
-        } else {
-            return new PaymentPlan("You don't have any debts to paid.", ssn, emptyList());
+            payAllDebts(debtor, sumOfDebts, paymentConfirmation);
         }
     }
 
-    private PaymentPlan createPaymentPlanDependingOnAmount(
+    private void createPaymentPlanDependingOnAmount(
             Debt chosenDebt,
             BigDecimal paymentAmount,
-            PaymentPlan paymentPlan,
             List<Debt> oldestDebts,
             PaymentConfirmation paymentConfirmation) {
 
         BigDecimal debtLeftToPaid = debtCalculatorService.getDebtLeftToPaid(chosenDebt);
 
-        logger.info("Payments list for debt {} is ready to be actualized.", chosenDebt.getUuid());
+        logger.info("Payments list for debt {} has been actualized.", chosenDebt.getUuid());
 
         if (paymentAmount.compareTo(debtLeftToPaid) <= 0) {
-            addPaymentToPlan(paymentAmount, paymentPlan, chosenDebt, paymentConfirmation);
-            return paymentPlan;
+            addPaymentToDebtsSetOfPayments(paymentAmount, chosenDebt, paymentConfirmation);
         } else {
-            return payChosenDebtAndOthersByDate(paymentAmount, paymentPlan, oldestDebts, chosenDebt, paymentConfirmation);
+            payChosenDebtAndOthersByDate(paymentAmount, oldestDebts, chosenDebt, paymentConfirmation);
         }
     }
 
-    private PaymentPlan payChosenDebtAndOthersByDate(
-            BigDecimal paymentAmount,
-            PaymentPlan paymentPlan,
-            List<Debt> oldestDebts,
-            Debt chosenDebt,
-            PaymentConfirmation paymentConfirmation) {
+    private void payChosenDebtAndOthersByDate(BigDecimal paymentAmount, List<Debt> oldestDebts,
+                                              Debt chosenDebt, PaymentConfirmation paymentConfirmation) {
 
-        addPaymentToPlan(chosenDebt.getDebtAmount().subtract(debtCalculatorService.getSumOfPayments(chosenDebt)), paymentPlan, chosenDebt, paymentConfirmation);
-        paymentAmount = paymentAmount.subtract(chosenDebt.getDebtAmount());
+        if (debtCalculatorService.getSumOfPayments(chosenDebt).compareTo(chosenDebt.getDebtAmount()) < 0) {
+            addPaymentToDebtsSetOfPayments(chosenDebt.getDebtAmount()
+                    .subtract(debtCalculatorService.getSumOfPayments(chosenDebt)), chosenDebt, paymentConfirmation);
+            paymentAmount = paymentAmount.subtract(chosenDebt.getDebtAmount());
+        }
 
         List<Debt> debtsWithoutChosen = new ArrayList<>();
-
         for (Debt d : oldestDebts) {
             if (!d.getUuid().equals(chosenDebt.getUuid())) {
                 debtsWithoutChosen.add(d);
             }
         }
-        payOldestDebts(paymentAmount, paymentPlan, debtsWithoutChosen, paymentConfirmation);
-        return paymentPlan;
+        payOldestDebts(paymentAmount, debtsWithoutChosen, paymentConfirmation);
     }
 
-    private PaymentPlan payOldestDebts(BigDecimal paymentAmount, PaymentPlan paymentPlan, List<Debt> oldestDebts, PaymentConfirmation paymentConfirmation) {
-
-        logger.info("PaymentPlan for {} has been actualized.", paymentPlan.getSsn());
+    private void payOldestDebts(BigDecimal paymentAmount, List<Debt> oldestDebts,
+                                PaymentConfirmation paymentConfirmation) {
 
         for (int i = 0; i < oldestDebts.size(); i++) {
             Debt oldestDebt = oldestDebts.get(i);
             BigDecimal debtLeftToPaid = debtCalculatorService.getDebtLeftToPaid(oldestDebt);
 
-            logger.info("Payments list for debt {} is ready to be actualized.", oldestDebt.getUuid());
+            logger.info("Payments list for debt {} has been actualized.", oldestDebt.getUuid());
 
             if (paymentAmount.compareTo(debtLeftToPaid) <= 0) {
-                addPaymentToPlan(paymentAmount, paymentPlan, oldestDebt, paymentConfirmation);
+                addPaymentToDebtsSetOfPayments(paymentAmount, oldestDebt, paymentConfirmation);
                 break;
             } else {
-                paymentAmount = addPaymentToPlanAndGetRemainingPaymentAmount(paymentAmount, paymentPlan, oldestDebt, debtLeftToPaid, paymentConfirmation);
+                paymentAmount = addPaymentToDebtsSetOfPaymentsAndGetRemainingPaymentAmount(
+                        paymentAmount, oldestDebt, debtLeftToPaid, paymentConfirmation);
             }
         }
-        return paymentPlan;
     }
 
-    private PaymentPlan payAllDebts(Debtor debtor, BigDecimal paymentAmount, List<PlannedPayment> plannedPaymentList, BigDecimal sumOfDebts) {
+    private void payAllDebts(Debtor debtor, BigDecimal sumOfDebts, PaymentConfirmation paymentConfirmation) {
 
-        logger.info("All debts can been paid. Surplus: {}.", paymentAmount.subtract(sumOfDebts));
+        logger.info("All debts has been paid. Surplus: {}.",
+                paymentConfirmation.getPaymentDeclaration().getPaymentAmount().subtract(sumOfDebts));
 
-        PaymentPlan paymentPlan = new PaymentPlan
-                ("All debts will be paid. You have " + paymentAmount.subtract(sumOfDebts) + " of surplus.", debtor.getSsn(), plannedPaymentList);
-        for (Debt d : debtor.getSetOfDebts()) {
-            BigDecimal sumOfPayments = debtCalculatorService.getSumOfPayments(d);
-            plannedPaymentList.add(new PlannedPayment(d.getUuid(), d.getDebtAmount().subtract(sumOfPayments)));
+        List<Debt> listOfDebts = new ArrayList<>();
+        debtor.getSetOfDebts().forEach(d -> listOfDebts.add(d));
+
+        for (int i = 0; i < listOfDebts.size(); i++) {
+            Debt debt = listOfDebts.get(i);
+            addNewPaymentToDebtsPayments(debt, new Payment(
+                    LocalDate.now(),
+                    debt.getDebtAmount().subtract(debtCalculatorService.getSumOfPayments(debt)),
+                    paymentConfirmation.getCreditCard(),
+                    paymentConfirmation.getClientId()));
         }
-        return paymentPlan;
     }
 
-    private void addPaymentToPlan(
-            BigDecimal paymentAmount,
-            PaymentPlan paymentPlan,
-            Debt debt,
-            PaymentConfirmation paymentConfirmation) {
+    private void addPaymentToDebtsSetOfPayments(BigDecimal paymentAmount, Debt debt,
+                                                PaymentConfirmation paymentConfirmation) {
 
-        List<PlannedPayment> plannedPaymentList = paymentPlan.getPlannedPaymentList();
-        plannedPaymentList.add(new PlannedPayment(debt.getUuid(), paymentAmount));
+        Payment payment = new Payment(LocalDate.now(), paymentAmount,
+                paymentConfirmation.getCreditCard(), paymentConfirmation.getClientId());
 
-        CreditCard creditCard = paymentConfirmation.getCreditCard();
-        String clientId = paymentConfirmation.getClientId();
-
-        Payment payment = new Payment(LocalDate.now(), paymentAmount, creditCard, clientId);
-        Set<Payment> payments = new HashSet<>();
-        for (Payment p : debt.getSetOfPayments()) {
-            payments.add(p);
-        }
-        payments.add(payment);
-        debt.setSetOfPayments(payments);
-
-        paymentPlan.setPlannedPaymentList(plannedPaymentList);
+        addNewPaymentToDebtsPayments(debt, payment);
     }
 
-    private BigDecimal addPaymentToPlanAndGetRemainingPaymentAmount(
-            BigDecimal paymentAmount,
-            PaymentPlan paymentPlan,
-            Debt debt,
-            BigDecimal debtLeftToPaid,
-            PaymentConfirmation paymentConfirmation) {
+    private BigDecimal addPaymentToDebtsSetOfPaymentsAndGetRemainingPaymentAmount(
+            BigDecimal paymentAmount, Debt debt, BigDecimal debtLeftToPaid, PaymentConfirmation paymentConfirmation) {
 
-        paymentPlan
-                .getPlannedPaymentList()
-                .add(new PlannedPayment(debt.getUuid(), debtLeftToPaid));
+        Payment payment = new Payment(LocalDate.now(), debtLeftToPaid,
+                paymentConfirmation.getCreditCard(), paymentConfirmation.getClientId());
 
-        CreditCard creditCard = paymentConfirmation.getCreditCard();
-        String clientId = paymentConfirmation.getClientId();
-
-        Payment payment = new Payment(LocalDate.now(), paymentAmount, creditCard, clientId);
-        Set<Payment> payments = new HashSet<>();
-        for (Payment p : debt.getSetOfPayments()) {
-            payments.add(p);
-        }
-        payments.add(payment);
-        debt.setSetOfPayments(payments);
+        addNewPaymentToDebtsPayments(debt, payment);
 
         paymentAmount = paymentAmount.subtract(debtLeftToPaid);
         return paymentAmount;
+    }
+
+    private void addNewPaymentToDebtsPayments(Debt debt, Payment payment) {
+        if (debtCalculatorService.getSumOfPayments(debt).compareTo(debt.getDebtAmount()) < 0) {
+            debt.addToSetOfPayments(payment);
+            accountsRepository.save(debt.getDebtor());
+        }
     }
 }
 
