@@ -6,10 +6,12 @@ import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import pl.sii.eu.micuenta.conf.DataCreator;
 import pl.sii.eu.micuenta.model.Debtor;
 import pl.sii.eu.micuenta.model.form.PaymentConfirmation;
 import pl.sii.eu.micuenta.model.form.PaymentDeclaration;
 import pl.sii.eu.micuenta.model.form.PaymentPlan;
+import pl.sii.eu.micuenta.repository.AccountsRepository;
 import pl.sii.eu.micuenta.service.controller.DataDebtorService;
 import pl.sii.eu.micuenta.service.controller.PaymentPlanService;
 import pl.sii.eu.micuenta.service.controller.UpdatePaymentService;
@@ -27,11 +29,19 @@ public class AccountController {
     private final DataDebtorService dataDebtorService;
     private final PaymentPlanService paymentPlanService;
     private final UpdatePaymentService updatePaymentService;
+    private final DataCreator dataCreator;
+    private final AccountsRepository accountsRepository;
 
-    public AccountController(DataDebtorService dataDebtorService, PaymentPlanService paymentPlanService, UpdatePaymentService updatePaymentService) {
+    public AccountController(DataDebtorService dataDebtorService,
+                             PaymentPlanService paymentPlanService,
+                             UpdatePaymentService updatePaymentService,
+                             DataCreator dataCreator,
+                             AccountsRepository accountsRepository) {
         this.dataDebtorService = dataDebtorService;
         this.paymentPlanService = paymentPlanService;
         this.updatePaymentService = updatePaymentService;
+        this.dataCreator = dataCreator;
+        this.accountsRepository = accountsRepository;
     }
 
     @ApiOperation(value = "Returns: answer if debtor is present in MiCuenta application")
@@ -64,6 +74,12 @@ public class AccountController {
     public ResponseEntity updatePayments(@RequestBody PaymentConfirmation paymentConfirmation) {
 
         return updatePaymentService.updateDebtsPaymentsBasedOnPaymentConfirmation(paymentConfirmation);
+    }
+
+    @RequestMapping(value = "/reset", method = RequestMethod.DELETE)
+    public void resetData() {
+        accountsRepository.deleteAll();
+        accountsRepository.save(dataCreator.createDebtor());
     }
 }
 

@@ -56,7 +56,6 @@ public class PaymentPlanService {
                 return handlingChosenDebtId(chosenDebt, paymentAmount, debtor);
             }
         }
-
         return paymentPlan;
     }
 
@@ -120,8 +119,9 @@ public class PaymentPlanService {
 
     private PaymentPlan payChosenDebtAndOthersByDate(BigDecimal paymentAmount, PaymentPlan paymentPlan, List<Debt> oldestDebts, Debt chosenDebt) {
 
-        addPaymentToPlan(chosenDebt.getDebtAmount().subtract(debtCalculatorService.getSumOfPayments(chosenDebt)), paymentPlan, chosenDebt);
-        paymentAmount = paymentAmount.subtract(chosenDebt.getDebtAmount());
+        BigDecimal restAmount = chosenDebt.getDebtAmount().subtract(debtCalculatorService.getSumOfPayments(chosenDebt));
+        addPaymentToPlan(restAmount, paymentPlan, chosenDebt);
+        paymentAmount = paymentAmount.subtract(restAmount);
 
         List<Debt> debtsWithoutChosen = new ArrayList<>();
 
@@ -162,7 +162,8 @@ public class PaymentPlanService {
                 ("All debts will be paid. You have " + paymentAmount.subtract(sumOfDebts) + " of surplus.", debtor.getSsn(), plannedPaymentList);
         for (Debt d : debtor.getSetOfDebts()) {
             BigDecimal sumOfPayments = debtCalculatorService.getSumOfPayments(d);
-            plannedPaymentList.add(new PlannedPayment(d.getUuid(), d.getDebtAmount().subtract(sumOfPayments)));
+            BigDecimal remainingDebt = d.getDebtAmount().subtract(sumOfPayments);
+            plannedPaymentList.add(new PlannedPayment(d.getUuid(), remainingDebt));
         }
         return paymentPlan;
     }

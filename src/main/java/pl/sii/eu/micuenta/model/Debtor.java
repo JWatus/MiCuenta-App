@@ -3,12 +3,13 @@ package pl.sii.eu.micuenta.model;
 import io.swagger.annotations.ApiModelProperty;
 
 import javax.persistence.*;
+import java.io.Serializable;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
 @Entity
-public class Debtor {
+public class Debtor implements Serializable {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

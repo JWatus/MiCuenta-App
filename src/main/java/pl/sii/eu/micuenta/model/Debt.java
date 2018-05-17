@@ -3,6 +3,7 @@ package pl.sii.eu.micuenta.model;
 import io.swagger.annotations.ApiModelProperty;
 
 import javax.persistence.*;
+import java.io.Serializable;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.Collections;
@@ -10,7 +11,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 @Entity
-public class Debt {
+public class Debt implements Serializable {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

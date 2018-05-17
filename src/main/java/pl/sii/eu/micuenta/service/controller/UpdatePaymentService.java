@@ -121,9 +121,9 @@ public class UpdatePaymentService {
                                               Debt chosenDebt, PaymentConfirmation paymentConfirmation) {
 
         if (debtCalculatorService.getSumOfPayments(chosenDebt).compareTo(chosenDebt.getDebtAmount()) < 0) {
-            addPaymentToDebtsSetOfPayments(chosenDebt.getDebtAmount()
-                    .subtract(debtCalculatorService.getSumOfPayments(chosenDebt)), chosenDebt, paymentConfirmation);
-            paymentAmount = paymentAmount.subtract(chosenDebt.getDebtAmount());
+            BigDecimal restAmount = chosenDebt.getDebtAmount().subtract(debtCalculatorService.getSumOfPayments(chosenDebt));
+            addPaymentToDebtsSetOfPayments(restAmount, chosenDebt, paymentConfirmation);
+            paymentAmount = paymentAmount.subtract(restAmount);
         }
 
         List<Debt> debtsWithoutChosen = new ArrayList<>();

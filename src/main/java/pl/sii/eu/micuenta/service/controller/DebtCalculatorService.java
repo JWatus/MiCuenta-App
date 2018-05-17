@@ -11,7 +11,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
-public class DebtCalculatorService {
+class DebtCalculatorService {
 
     BigDecimal getDebtLeftToPaid(Debt chosenDebt) {
         BigDecimal sumOfPayments = getSumOfPayments(chosenDebt);
