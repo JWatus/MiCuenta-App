@@ -64,18 +64,28 @@ public class AccountController {
         return dataDebtorService.getDebtorBySsn(ssn);
     }
 
+    @ApiOperation(value = "Returns: payment plan based on received amount")
     @RequestMapping(value = "/paymentplan", consumes = MediaType.APPLICATION_JSON, method = RequestMethod.POST)
     public PaymentPlan getPaymentPlan(@RequestBody PaymentDeclaration paymentDeclaration) {
 
         return paymentPlanService.getPaymentPlanBasedOnPaymentDeclaration(paymentDeclaration);
     }
 
+    @ApiOperation(value = "Returns: status of success or failure of updating payments operation")
+    @ApiResponses(
+            value = {
+                    @ApiResponse(code = 200, message = "List of payments for chosen debts has been updated"),
+                    @ApiResponse(code = 400, message = "Payment amount is not valid"),
+                    @ApiResponse(code = 404, message = "Debt with chosen id does not exist")
+            }
+    )
     @RequestMapping(value = "/paymentmethods/creditcard", consumes = MediaType.APPLICATION_JSON, method = RequestMethod.POST)
     public ResponseEntity updatePayments(@RequestBody PaymentConfirmation paymentConfirmation) {
 
         return updatePaymentService.updateDebtsPaymentsBasedOnPaymentConfirmation(paymentConfirmation);
     }
 
+    @ApiOperation(value = "Reset database")
     @RequestMapping(value = "/reset", method = RequestMethod.DELETE)
     public void resetData() {
         accountsRepository.deleteAll();

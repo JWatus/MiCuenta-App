@@ -77,7 +77,7 @@ public class PaymentPlanServiceTest {
         String message = "Your payment amount is 450.00";
         String ssn = "980-122-111";
         List<PlannedPayment> plannedPaymentList = new ArrayList<>();
-        PlannedPayment plannedPaymentOne = new PlannedPayment("111222333444",
+        PlannedPayment plannedPaymentOne = new PlannedPayment("CRTP/909088",
                 BigDecimal.valueOf(450).setScale(2, RoundingMode.HALF_EVEN));
         plannedPaymentList.add(plannedPaymentOne);
 
@@ -106,9 +106,9 @@ public class PaymentPlanServiceTest {
         String message = "Your payment amount is 55550.00";
         String ssn = "980-122-111";
         List<PlannedPayment> plannedPaymentList = new ArrayList<>();
-        PlannedPayment plannedPaymentOne = new PlannedPayment("111222333444",
+        PlannedPayment plannedPaymentOne = new PlannedPayment("CRTP/909088",
                 BigDecimal.valueOf(48800).setScale(2, RoundingMode.HALF_EVEN));
-        PlannedPayment plannedPaymentTwo = new PlannedPayment("999888777666",
+        PlannedPayment plannedPaymentTwo = new PlannedPayment("KIGT/116256",
                 BigDecimal.valueOf(6750).setScale(2, RoundingMode.HALF_EVEN));
         plannedPaymentList.add(plannedPaymentOne);
         plannedPaymentList.add(plannedPaymentTwo);
@@ -138,9 +138,9 @@ public class PaymentPlanServiceTest {
         String message = "All debts will be paid. You have 6550.00 of surplus.";
         String ssn = "980-122-111";
         List<PlannedPayment> plannedPaymentList = new ArrayList<>();
-        PlannedPayment plannedPaymentOne = new PlannedPayment("111222333444",
+        PlannedPayment plannedPaymentOne = new PlannedPayment("CRTP/909088",
                 BigDecimal.valueOf(48800).setScale(2, RoundingMode.HALF_EVEN));
-        PlannedPayment plannedPaymentTwo = new PlannedPayment("999888777666",
+        PlannedPayment plannedPaymentTwo = new PlannedPayment("KIGT/116256",
                 BigDecimal.valueOf(58600).setScale(2, RoundingMode.HALF_EVEN));
         plannedPaymentList.add(plannedPaymentOne);
         plannedPaymentList.add(plannedPaymentTwo);

@@ -51,9 +51,9 @@ public class UpdatePaymentServiceTest {
 
         CreditCard creditCardOne = new CreditCard("1234567890123456", "809", "Sylvanas", "Windrunner", "MasterCard", LocalDate.now());
         CreditCard creditCardTwo = new CreditCard("0987654321098765", "312", "Anduin", "Wrynn", "VISA", LocalDate.now());
-        PaymentDeclaration paymentDeclarationOne = new PaymentDeclaration(BigDecimal.valueOf(2043), "980-122-111", "111111111111");
-        PaymentDeclaration paymentDeclarationTwo = new PaymentDeclaration(BigDecimal.valueOf(3456), "980-122-111", "111111111111");
-        PaymentDeclaration paymentDeclarationThree = new PaymentDeclaration(BigDecimal.valueOf(234), "980-122-111", "111111111111");
+        PaymentDeclaration paymentDeclarationOne = new PaymentDeclaration(BigDecimal.valueOf(2043), "980-122-111", "PLWT/871422");
+        PaymentDeclaration paymentDeclarationTwo = new PaymentDeclaration(BigDecimal.valueOf(3456), "980-122-111", "PLWT/871422");
+        PaymentDeclaration paymentDeclarationThree = new PaymentDeclaration(BigDecimal.valueOf(234), "980-122-111", "PLWT/871422");
         PaymentConfirmation paymentConfirmationOne = new PaymentConfirmation(paymentDeclarationOne, "Horde", creditCardOne);
         PaymentConfirmation paymentConfirmationTwo = new PaymentConfirmation(paymentDeclarationTwo, "Alliance", creditCardTwo);
         PaymentConfirmation paymentConfirmationThree = new PaymentConfirmation(paymentDeclarationThree, "Alliance", creditCardTwo);
@@ -71,9 +71,9 @@ public class UpdatePaymentServiceTest {
         int resultPaymentsSizeOfDebtTwo = 0;
 
         for (Debt d : debtor.getSetOfDebts()) {
-            if (d.getUuid().equals("111111111111"))
+            if (d.getUuid().equals("PLWT/871422"))
                 resultPaymentsSizeOfDebtOne = d.getSetOfPayments().size();
-            if (d.getUuid().equals("222222222222"))
+            if (d.getUuid().equals("ADWR/595501"))
                 resultPaymentsSizeOfDebtTwo = d.getSetOfPayments().size();
         }
 
@@ -112,9 +112,9 @@ public class UpdatePaymentServiceTest {
         int resultPaymentsSizeOfDebtTwo = 0;
 
         for (Debt d : debtor.getSetOfDebts()) {
-            if (d.getUuid().equals("222222222222"))
+            if (d.getUuid().equals("ADWR/595501"))
                 resultPaymentsSizeOfDebtOne = d.getSetOfPayments().size();
-            if (d.getUuid().equals("111111111111"))
+            if (d.getUuid().equals("PLWT/871422"))
                 resultPaymentsSizeOfDebtTwo = d.getSetOfPayments().size();
         }
 
@@ -134,9 +134,9 @@ public class UpdatePaymentServiceTest {
         CreditCard creditCardOne = new CreditCard("1234567890123456", "809", "Sylvanas", "Windrunner", "MasterCard", LocalDate.now());
         CreditCard creditCardTwo = new CreditCard("0987654321098765", "312", "Anduin", "Wrynn", "VISA", LocalDate.now());
         CreditCard creditCardThree = new CreditCard("1010101010101010", "312", "Darion", "Mograine", "VISA", LocalDate.now());
-        PaymentDeclaration paymentDeclarationOne = new PaymentDeclaration(BigDecimal.valueOf(2043), "980-122-111", "111111111111");
-        PaymentDeclaration paymentDeclarationTwo = new PaymentDeclaration(BigDecimal.valueOf(35456), "980-122-111", "222222222222");
-        PaymentDeclaration paymentDeclarationThree = new PaymentDeclaration(BigDecimal.valueOf(234), "980-122-111", "111222333444");
+        PaymentDeclaration paymentDeclarationOne = new PaymentDeclaration(BigDecimal.valueOf(2043), "980-122-111", "PLWT/871422");
+        PaymentDeclaration paymentDeclarationTwo = new PaymentDeclaration(BigDecimal.valueOf(35456), "980-122-111", "ADWR/595501");
+        PaymentDeclaration paymentDeclarationThree = new PaymentDeclaration(BigDecimal.valueOf(234), "980-122-111", "CRTP/909088");
         PaymentConfirmation paymentConfirmationOne = new PaymentConfirmation(paymentDeclarationOne, "Horde", creditCardOne);
         PaymentConfirmation paymentConfirmationTwo = new PaymentConfirmation(paymentDeclarationTwo, "Alliance", creditCardTwo);
         PaymentConfirmation paymentConfirmationThree = new PaymentConfirmation(paymentDeclarationThree, "Ebon Blade", creditCardThree);
@@ -158,11 +158,11 @@ public class UpdatePaymentServiceTest {
         BigDecimal resultPaymentsSizeOfDebtFour = BigDecimal.ZERO;
 
         for (Debt d : debtor.getSetOfDebts()) {
-            if (d.getUuid().equals("111111111111"))
+            if (d.getUuid().equals("PLWT/871422"))
                 resultPaymentsSizeOfDebtOne = debtCalculatorService.getSumOfPayments(d).setScale(2, RoundingMode.HALF_EVEN);
-            else if (d.getUuid().equals("222222222222"))
+            else if (d.getUuid().equals("ADWR/595501"))
                 resultPaymentsSizeOfDebtTwo = debtCalculatorService.getSumOfPayments(d).setScale(2, RoundingMode.HALF_EVEN);
-            else if (d.getUuid().equals("111222333444"))
+            else if (d.getUuid().equals("CRTP/909088"))
                 resultPaymentsSizeOfDebtThree = debtCalculatorService.getSumOfPayments(d).setScale(2, RoundingMode.HALF_EVEN);
             else
                 resultPaymentsSizeOfDebtFour = debtCalculatorService.getSumOfPayments(d).setScale(2, RoundingMode.HALF_EVEN);
@@ -210,11 +210,11 @@ public class UpdatePaymentServiceTest {
         BigDecimal resultPaymentsSizeOfDebtFour = BigDecimal.ZERO;
 
         for (Debt d : debtor.getSetOfDebts()) {
-            if (d.getUuid().equals("111111111111"))
+            if (d.getUuid().equals("PLWT/871422"))
                 resultPaymentsSizeOfDebtOne = debtCalculatorService.getSumOfPayments(d).setScale(2, RoundingMode.HALF_EVEN);
-            else if (d.getUuid().equals("222222222222"))
+            else if (d.getUuid().equals("ADWR/595501"))
                 resultPaymentsSizeOfDebtTwo = debtCalculatorService.getSumOfPayments(d).setScale(2, RoundingMode.HALF_EVEN);
-            else if (d.getUuid().equals("111222333444"))
+            else if (d.getUuid().equals("CRTP/909088"))
                 resultPaymentsSizeOfDebtThree = debtCalculatorService.getSumOfPayments(d).setScale(2, RoundingMode.HALF_EVEN);
             else
                 resultPaymentsSizeOfDebtFour = debtCalculatorService.getSumOfPayments(d).setScale(2, RoundingMode.HALF_EVEN);
@@ -254,11 +254,11 @@ public class UpdatePaymentServiceTest {
         BigDecimal resultPaymentsSizeOfDebtFour = BigDecimal.ZERO;
 
         for (Debt d : debtor.getSetOfDebts()) {
-            if (d.getUuid().equals("111111111111"))
+            if (d.getUuid().equals("PLWT/871422"))
                 resultPaymentsSizeOfDebtOne = debtCalculatorService.getSumOfPayments(d).setScale(2, RoundingMode.HALF_EVEN);
-            else if (d.getUuid().equals("222222222222"))
+            else if (d.getUuid().equals("ADWR/595501"))
                 resultPaymentsSizeOfDebtTwo = debtCalculatorService.getSumOfPayments(d).setScale(2, RoundingMode.HALF_EVEN);
-            else if (d.getUuid().equals("111222333444"))
+            else if (d.getUuid().equals("CRTP/909088"))
                 resultPaymentsSizeOfDebtThree = debtCalculatorService.getSumOfPayments(d).setScale(2, RoundingMode.HALF_EVEN);
             else
                 resultPaymentsSizeOfDebtFour = debtCalculatorService.getSumOfPayments(d).setScale(2, RoundingMode.HALF_EVEN);

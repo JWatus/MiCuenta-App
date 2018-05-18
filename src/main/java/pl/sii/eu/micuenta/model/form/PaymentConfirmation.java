@@ -1,11 +1,18 @@
 package pl.sii.eu.micuenta.model.form;
 
+import io.swagger.annotations.ApiModelProperty;
 import pl.sii.eu.micuenta.model.CreditCard;
 
 public class PaymentConfirmation {
 
+    @ApiModelProperty(access = "private", name = "paymentDeclaration", example = "{}",
+            value = "Debtor's payment declaration")
     private PaymentDeclaration paymentDeclaration;
+    @ApiModelProperty(access = "private", name = "clientId", example = "Alivio",
+            value = "Client's id")
     private String clientId;
+    @ApiModelProperty(access = "private", name = "creditCard", example = "{}",
+            value = "Payment from this Credit Card")
     private CreditCard creditCard;
 
     public PaymentDeclaration getPaymentDeclaration() {

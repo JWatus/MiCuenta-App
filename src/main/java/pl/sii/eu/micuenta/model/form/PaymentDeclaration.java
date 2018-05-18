@@ -6,6 +6,8 @@ import java.math.BigDecimal;
 
 public class PaymentDeclaration {
 
+    @ApiModelProperty(access = "private", name = "paymentAmount", example = "3000",
+            value = "Debtor's amount of payment")
     private BigDecimal paymentAmount;
     @ApiModelProperty(access = "private", name = "ssn", example = "980-122-111",
             value = "Debtor's social security number")
