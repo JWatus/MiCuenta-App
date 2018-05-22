@@ -2,6 +2,7 @@ package pl.sii.eu.micuenta.conf;
 
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.transaction.annotation.EnableTransactionManagement;
 import pl.sii.eu.micuenta.model.Debtor;
 import pl.sii.eu.micuenta.repository.AccountsRepository;
 
@@ -9,6 +10,7 @@ import javax.annotation.PostConstruct;
 
 @Configuration
 @ComponentScan("pl.sii.eu.micuenta")
+@EnableTransactionManagement
 public class AppConfig {
 
     private DataCreator dataCreator;
