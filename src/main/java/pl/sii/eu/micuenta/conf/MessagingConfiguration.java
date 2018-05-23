@@ -14,7 +14,7 @@ import javax.jms.ConnectionFactory;
 @EnableJms
 public class MessagingConfiguration {
 
-    private static final String DEFAULT_BROKER_URL = "tcp://localhost:61616";
+    private static final String DEFAULT_BROKER_URL = "tcp://ec2-34-245-25-132.eu-west-1.compute.amazonaws.com:7030";
 
     @Bean
     public ConnectionFactory connectionFactory() {

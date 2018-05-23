@@ -1,21 +1,32 @@
 package pl.sii.eu.micuenta.jms;
 
 import org.springframework.jms.core.JmsTemplate;
+import org.springframework.jms.core.MessageCreator;
 import org.springframework.stereotype.Component;
+import pl.sii.eu.micuenta.model.Debtor;
+
+import javax.jms.JMSException;
+import javax.jms.Message;
+import javax.jms.Session;
 
 @Component
 public class MessageSender {
 
     private JmsTemplate jmsTemplate;
-    MessageReceiver messageReceiver;
 
-    public MessageSender(JmsTemplate jmsTemplate, MessageReceiver messageReceiver) {
+    public MessageSender(JmsTemplate jmsTemplate) {
         this.jmsTemplate = jmsTemplate;
-        this.messageReceiver = messageReceiver;
     }
 
-    public void send(String destination, String message) {
-        jmsTemplate.convertAndSend(destination, message);
-    }
+//    public void sendMessage(final Debtor debtor) {
+//
+//        jmsTemplate.convertAndSend("kolejka", new MessageCreator() {
+//            @Override
+//            public Message createMessage(Session session) throws JMSException {
+//                Message message = session.createObjectMessage(debtor);
+//                return message;
+//            }
+//        });
+//    }
 
 }
