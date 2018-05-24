@@ -1,5 +1,6 @@
 package pl.sii.eu.micuenta.controller;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiResponse;
@@ -12,9 +13,9 @@ import pl.sii.eu.micuenta.model.form.PaymentConfirmation;
 import pl.sii.eu.micuenta.model.form.PaymentDeclaration;
 import pl.sii.eu.micuenta.model.form.PaymentPlan;
 import pl.sii.eu.micuenta.repository.AccountsRepository;
-import pl.sii.eu.micuenta.service.controller.DataDebtorService;
-import pl.sii.eu.micuenta.service.controller.PaymentPlanService;
-import pl.sii.eu.micuenta.service.controller.UpdatePaymentService;
+import pl.sii.eu.micuenta.service.DataDebtorService;
+import pl.sii.eu.micuenta.service.PaymentPlanService;
+import pl.sii.eu.micuenta.service.UpdatePaymentService;
 
 import javax.ws.rs.core.MediaType;
 
@@ -59,7 +60,7 @@ public class AccountController {
 
     @ApiOperation(value = "Returns: debtor with list of debts")
     @RequestMapping(value = "/balance/{ssn}", produces = MediaType.APPLICATION_JSON, method = RequestMethod.GET)
-    public Debtor getBalance(@PathVariable String ssn) {
+    public String getBalance(@PathVariable String ssn) throws JsonProcessingException {
 
         return dataDebtorService.getDebtorBySsn(ssn);
     }

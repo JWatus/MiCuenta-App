@@ -1,4 +1,4 @@
-package pl.sii.eu.micuenta.service.controller;
+package pl.sii.eu.micuenta.service;
 
 import org.springframework.stereotype.Service;
 import pl.sii.eu.micuenta.model.Debt;

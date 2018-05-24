@@ -1,6 +1,8 @@
 package pl.sii.eu.micuenta.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import io.swagger.annotations.ApiModelProperty;
+import org.springframework.format.annotation.DateTimeFormat;
 
 import javax.persistence.*;
 import java.io.Serializable;
@@ -19,6 +21,7 @@ public class Debt implements Serializable {
     @ApiModelProperty(access = "private", name = "debtAmount", example = "50000.0", value = "Amount of Debt")
     private BigDecimal debtAmount;
     @ApiModelProperty(access = "private", name = "repaymentDate", example = "2018-05-08", value = "Date of repayment")
+    @DateTimeFormat(pattern = "yyyy-MM-dd")
     private LocalDate repaymentDate;
     @ApiModelProperty(access = "private", name = "uuid", example = "999888777666", value = "Universal unique identifier")
     private String uuid;
@@ -27,6 +30,7 @@ public class Debt implements Serializable {
 
     @ApiModelProperty(access = "private", name = "debtor", example = "{}", value = "Debtor")
     @ManyToOne
+    @JsonIgnore
     private Debtor debtor;
 
     @ApiModelProperty(access = "private", name = "setOfPayments", dataType = "Set", value = "Debtor's set of payments")

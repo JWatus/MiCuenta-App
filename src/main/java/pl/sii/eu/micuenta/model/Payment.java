@@ -1,6 +1,8 @@
 package pl.sii.eu.micuenta.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import io.swagger.annotations.ApiModelProperty;
+import org.springframework.format.annotation.DateTimeFormat;
 
 import javax.persistence.*;
 import java.io.Serializable;
@@ -14,6 +16,7 @@ public class Payment implements Serializable {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     @ApiModelProperty(access = "private", name = "paymentDate", example = "2018-05-08", value = "Date of payment")
+    @DateTimeFormat(pattern = "yyyy-MM-dd")
     private LocalDate paymentDate;
     @ApiModelProperty(access = "private", name = "paymentAmount", example = "50000.0", value = "Amount of Payment")
     private BigDecimal paymentAmount;
@@ -26,6 +29,7 @@ public class Payment implements Serializable {
 
     @ApiModelProperty(access = "private", name = "debt", example = "{}", value = "Debt")
     @ManyToOne
+    @JsonIgnore
     private Debt debt;
 
     public Long getId() {

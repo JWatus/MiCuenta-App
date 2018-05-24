@@ -1,6 +1,7 @@
 package pl.sii.eu.micuenta.model;
 
 import io.swagger.annotations.ApiModelProperty;
+import org.springframework.format.annotation.DateTimeFormat;
 
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
@@ -26,6 +27,7 @@ public class CreditCard implements Serializable {
     @ApiModelProperty(access = "private", name = "issuingNetwork", example = "MasterCard", value = "Credit Card vendor")
     private String issuingNetwork;
     @ApiModelProperty(access = "private", name = "expDate", example = "2018-06-30", value = "Credit Card expiration date")
+    @DateTimeFormat(pattern = "yyyy-MM-dd")
     private LocalDate expDate;
 
     public Long getId() {

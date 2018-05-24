@@ -1,5 +1,6 @@
-package pl.sii.eu.micuenta.service.controller;
+package pl.sii.eu.micuenta.service;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import org.assertj.core.api.Assertions;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -73,7 +74,7 @@ public class DataDebtorServiceTest {
     @Test
     @Sql(scripts = "/sql_scripts/initial_db_state.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
     @Sql(scripts = "/sql_scripts/clean_db.sql", executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
-    public void shouldReturnChosenDebtorWhenDataIsValid() {
+    public void shouldReturnChosenDebtorWhenDataIsValid() throws JsonProcessingException {
 
         //given
         Debtor debtor = dataCreator.createDebtor();
@@ -82,10 +83,10 @@ public class DataDebtorServiceTest {
         String userLastName = "Watus";
 
         //when
-        Debtor result = dataDebtorService.getDebtorBySsn("980-122-111");
+        String result = dataDebtorService.getDebtorBySsn("980-122-111");
 
         //then
-        Assertions.assertThat(result.getFirstName().contains(userFirstName)).isTrue();
-        Assertions.assertThat(result.getLastName().contains(userLastName)).isTrue();
+        Assertions.assertThat(result.contains(userFirstName)).isTrue();
+        Assertions.assertThat(result.contains(userLastName)).isTrue();
     }
 }

@@ -1,7 +1,7 @@
-package pl.sii.eu.micuenta.service.controller;
+package pl.sii.eu.micuenta.service;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.module.SimpleModule;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
@@ -9,15 +9,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
-import pl.sii.eu.micuenta.model.CreditCard;
-import pl.sii.eu.micuenta.model.Debt;
 import pl.sii.eu.micuenta.model.Debtor;
-import pl.sii.eu.micuenta.model.Payment;
 import pl.sii.eu.micuenta.repository.AccountsRepository;
-import pl.sii.eu.micuenta.service.serializers.CreditCardSerializer;
-import pl.sii.eu.micuenta.service.serializers.DebtSerializer;
-import pl.sii.eu.micuenta.service.serializers.DebtorSerializer;
-import pl.sii.eu.micuenta.service.serializers.PaymentSerializer;
 
 import java.util.Optional;
 
@@ -51,25 +44,16 @@ public class DataDebtorService {
         }
     }
 
-    public Debtor getDebtorBySsn(@PathVariable String ssn) {
+    public String getDebtorBySsn(@PathVariable String ssn) throws JsonProcessingException {
         Debtor debtor = accountsRepository.findFirstBySsn(ssn);
 
         if (debtor == null) {
             logger.info("User with ssn: {} has not been found by system.", ssn);
-            return new Debtor();
+            String response = "User with ssn: " + ssn + " has not been found by system.";
+            return objectMapper.writeValueAsString(response);
         }
-
         logger.info("User with ssn: {} has been found by system.", ssn);
-        registerModule(objectMapper);
-        return debtor;
-    }
 
-    private void registerModule(ObjectMapper objectMapper) {
-        SimpleModule module = new SimpleModule();
-        module.addSerializer(Debtor.class, new DebtorSerializer());
-        module.addSerializer(Debt.class, new DebtSerializer());
-        module.addSerializer(Payment.class, new PaymentSerializer());
-        module.addSerializer(CreditCard.class, new CreditCardSerializer());
-        objectMapper.registerModule(module);
+        return objectMapper.writeValueAsString(debtor);
     }
 }
