@@ -30,7 +30,7 @@ public class MessagePaymentDeclarationReceiver {
         Gson gson = new GsonBuilder().create();
         PaymentDeclaration paymentDeclaration = gson.fromJson(json, PaymentDeclaration.class);
         PaymentPlan paymentPlan = paymentPlanService.getPaymentPlanBasedOnPaymentDeclaration(paymentDeclaration);
-        String queue = "jms.queue.paymentplan." + textMessage.getJMSCorrelationID().toLowerCase();
-        messageSender.send(queue, paymentPlan);
+        String queue = "jms.queue." + textMessage.getJMSCorrelationID().toLowerCase();
+        messageSender.send(queue, paymentPlan,"paymentplan");
     }
 }

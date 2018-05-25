@@ -29,7 +29,7 @@ public class MessageDebtorReceiver {
         Gson gson = new GsonBuilder().create();
         Debtor debtor = gson.fromJson(json, Debtor.class);
         String status = dataDebtorService.validateDebtorsData(debtor).toString();
-        String queue = "jms.queue.login." + textMessage.getJMSCorrelationID().toLowerCase();
-        messageSender.send(queue, status);
+        String queue = "jms.queue." + textMessage.getJMSCorrelationID().toLowerCase();
+        messageSender.send(queue, status, "login");
     }
 }

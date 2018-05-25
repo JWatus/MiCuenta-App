@@ -18,11 +18,19 @@ public class MessageSender {
         this.jmsTemplate = jmsTemplate;
     }
 
-    public <T> void send(String queue, T response) throws JsonProcessingException, JMSException {
+    public <T> void send(String queue, T response, String endPoint) throws JsonProcessingException, JMSException {
         ObjectMapper objectMapper = new ObjectMapper();
         String json = objectMapper.writeValueAsString(response);
         TextMessage activeMQTextMessage = new ActiveMQTextMessage();
         activeMQTextMessage.setText(json);
+        activeMQTextMessage.setStringProperty("endpoint", endPoint);
+        jmsTemplate.convertAndSend(queue, activeMQTextMessage);
+    }
+
+    public void sendDebtor(String queue, String response, String endPoint) throws JMSException {
+        TextMessage activeMQTextMessage = new ActiveMQTextMessage();
+        activeMQTextMessage.setText(response);
+        activeMQTextMessage.setStringProperty("endpoint", endPoint);
         jmsTemplate.convertAndSend(queue, activeMQTextMessage);
     }
 }

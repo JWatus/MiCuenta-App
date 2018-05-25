@@ -28,7 +28,7 @@ public class MessageSsnReceiver {
         Gson gson = new GsonBuilder().create();
         String ssn = gson.fromJson(json, String.class);
         String debtor = dataDebtorService.getDebtorBySsn(ssn);
-        String queue = "jms.queue.balance." + textMessage.getJMSCorrelationID().toLowerCase();
-        messageSender.send(queue, debtor);
+        String queue = "jms.queue." + textMessage.getJMSCorrelationID().toLowerCase();
+        messageSender.sendDebtor(queue, debtor,"balance");
     }
 }

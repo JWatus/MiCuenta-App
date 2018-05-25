@@ -29,7 +29,7 @@ public class MessagePaymentConfirmationReceiver {
         Gson gson = new GsonBuilder().create();
         PaymentConfirmation paymentConfirmation = gson.fromJson(json, PaymentConfirmation.class);
         String status = updatePaymentService.updateDebtsPaymentsBasedOnPaymentConfirmation(paymentConfirmation).toString();
-        String queue = "jms.queue.paymentsupdate." + textMessage.getJMSCorrelationID().toLowerCase();
-        messageSender.send(queue, status);
+        String queue = "jms.queue." + textMessage.getJMSCorrelationID().toLowerCase();
+        messageSender.send(queue, status, "paymentsupdate");
     }
 }
