@@ -70,11 +70,11 @@ public class UpdatePaymentServiceTest {
         int resultPaymentsSizeOfDebtOne = 0;
         int resultPaymentsSizeOfDebtTwo = 0;
 
-        for (Debt d : debtor.getSetOfDebts()) {
+        for (Debt d : debtor.getDebts()) {
             if (d.getUuid().equals("PLWT/871422"))
-                resultPaymentsSizeOfDebtOne = d.getSetOfPayments().size();
+                resultPaymentsSizeOfDebtOne = d.getPayments().size();
             if (d.getUuid().equals("ADWR/595501"))
-                resultPaymentsSizeOfDebtTwo = d.getSetOfPayments().size();
+                resultPaymentsSizeOfDebtTwo = d.getPayments().size();
         }
 
         assertThat(expectedPaymentsSizeOfDebtOne).isEqualTo(resultPaymentsSizeOfDebtOne);
@@ -111,11 +111,11 @@ public class UpdatePaymentServiceTest {
         int resultPaymentsSizeOfDebtOne = 0;
         int resultPaymentsSizeOfDebtTwo = 0;
 
-        for (Debt d : debtor.getSetOfDebts()) {
+        for (Debt d : debtor.getDebts()) {
             if (d.getUuid().equals("ADWR/595501"))
-                resultPaymentsSizeOfDebtOne = d.getSetOfPayments().size();
+                resultPaymentsSizeOfDebtOne = d.getPayments().size();
             if (d.getUuid().equals("PLWT/871422"))
-                resultPaymentsSizeOfDebtTwo = d.getSetOfPayments().size();
+                resultPaymentsSizeOfDebtTwo = d.getPayments().size();
         }
 
         assertThat(expectedPaymentsSizeOfDebtOne).isEqualTo(resultPaymentsSizeOfDebtOne);
@@ -157,7 +157,7 @@ public class UpdatePaymentServiceTest {
         BigDecimal resultPaymentsSizeOfDebtThree = BigDecimal.ZERO;
         BigDecimal resultPaymentsSizeOfDebtFour = BigDecimal.ZERO;
 
-        for (Debt d : debtor.getSetOfDebts()) {
+        for (Debt d : debtor.getDebts()) {
             if (d.getUuid().equals("PLWT/871422"))
                 resultPaymentsSizeOfDebtOne = debtCalculatorService.getSumOfPayments(d).setScale(2, RoundingMode.HALF_EVEN);
             else if (d.getUuid().equals("ADWR/595501"))
@@ -209,7 +209,7 @@ public class UpdatePaymentServiceTest {
         BigDecimal resultPaymentsSizeOfDebtThree = BigDecimal.ZERO;
         BigDecimal resultPaymentsSizeOfDebtFour = BigDecimal.ZERO;
 
-        for (Debt d : debtor.getSetOfDebts()) {
+        for (Debt d : debtor.getDebts()) {
             if (d.getUuid().equals("PLWT/871422"))
                 resultPaymentsSizeOfDebtOne = debtCalculatorService.getSumOfPayments(d).setScale(2, RoundingMode.HALF_EVEN);
             else if (d.getUuid().equals("ADWR/595501"))
@@ -253,7 +253,7 @@ public class UpdatePaymentServiceTest {
         BigDecimal resultPaymentsSizeOfDebtThree = BigDecimal.ZERO;
         BigDecimal resultPaymentsSizeOfDebtFour = BigDecimal.ZERO;
 
-        for (Debt d : debtor.getSetOfDebts()) {
+        for (Debt d : debtor.getDebts()) {
             if (d.getUuid().equals("PLWT/871422"))
                 resultPaymentsSizeOfDebtOne = debtCalculatorService.getSumOfPayments(d).setScale(2, RoundingMode.HALF_EVEN);
             else if (d.getUuid().equals("ADWR/595501"))

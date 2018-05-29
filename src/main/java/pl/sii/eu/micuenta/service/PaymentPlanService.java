@@ -51,7 +51,7 @@ public class PaymentPlanService {
             return handlingEmptyDebtId(debtor, paymentAmount);
         }
 
-        for (Debt chosenDebt : debtor.getSetOfDebts()) {
+        for (Debt chosenDebt : debtor.getDebts()) {
             if (chosenDebt.getUuid().equals(debtUuid)) {
                 return handlingChosenDebtId(chosenDebt, paymentAmount, debtor);
             }
@@ -160,7 +160,7 @@ public class PaymentPlanService {
 
         PaymentPlan paymentPlan = new PaymentPlan
                 ("All debts will be paid. You have " + paymentAmount.subtract(sumOfDebts) + " of surplus.", debtor.getSsn(), plannedPaymentList);
-        for (Debt d : debtor.getSetOfDebts()) {
+        for (Debt d : debtor.getDebts()) {
             BigDecimal sumOfPayments = debtCalculatorService.getSumOfPayments(d);
             BigDecimal remainingDebt = d.getDebtAmount().subtract(sumOfPayments);
             plannedPaymentList.add(new PlannedPayment(d.getUuid(), remainingDebt));

@@ -56,7 +56,7 @@ public class UpdatePaymentService {
             return new ResponseEntity<String>(HttpStatus.OK);
         }
 
-        for (Debt chosenDebt : debtor.getSetOfDebts()) {
+        for (Debt chosenDebt : debtor.getDebts()) {
             if (chosenDebt.getUuid().equals(debtUuid)) {
                 handlingChosenDebtId(chosenDebt, debtor, paymentConfirmation);
                 return new ResponseEntity<String>(HttpStatus.OK);
@@ -160,7 +160,7 @@ public class UpdatePaymentService {
                 paymentConfirmation.getPaymentDeclaration().getPaymentAmount().subtract(sumOfDebts));
 
         List<Debt> listOfDebts = new ArrayList<>();
-        debtor.getSetOfDebts().forEach(d -> listOfDebts.add(d));
+        debtor.getDebts().forEach(d -> listOfDebts.add(d));
 
         for (int i = 0; i < listOfDebts.size(); i++) {
             Debt debt = listOfDebts.get(i);

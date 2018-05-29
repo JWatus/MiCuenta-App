@@ -1,7 +1,5 @@
 package pl.sii.eu.micuenta.service;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import org.assertj.core.api.Assertions;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,6 +16,8 @@ import pl.sii.eu.micuenta.model.Debtor;
 import pl.sii.eu.micuenta.repository.AccountsRepository;
 
 import javax.transaction.Transactional;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 @RunWith(SpringRunner.class)
 @ContextConfiguration(classes = {AppConfig.class})
@@ -50,7 +50,7 @@ public class DataDebtorServiceTest {
         ResponseEntity result = dataDebtorService.validateDebtorsData(receivedDebtor);
 
         //then
-        Assertions.assertThat(result).isEqualTo(new ResponseEntity(HttpStatus.OK));
+        assertThat(result).isEqualTo(new ResponseEntity(HttpStatus.OK));
     }
 
     @Test
@@ -68,13 +68,13 @@ public class DataDebtorServiceTest {
         ResponseEntity result = dataDebtorService.validateDebtorsData(receivedDebtor);
 
         //then
-        Assertions.assertThat(result).isEqualTo(new ResponseEntity(HttpStatus.NOT_FOUND));
+        assertThat(result).isEqualTo(new ResponseEntity(HttpStatus.NOT_FOUND));
     }
 
     @Test
     @Sql(scripts = "/sql_scripts/initial_db_state.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
     @Sql(scripts = "/sql_scripts/clean_db.sql", executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
-    public void shouldReturnChosenDebtorWhenDataIsValid() throws JsonProcessingException {
+    public void shouldReturnChosenDebtorWhenDataIsValid() {
 
         //given
         Debtor debtor = dataCreator.createDebtor();
@@ -83,10 +83,10 @@ public class DataDebtorServiceTest {
         String userLastName = "Watus";
 
         //when
-        String result = dataDebtorService.getDebtorBySsn("980-122-111");
+        Debtor result = dataDebtorService.getDebtorBySsn("980-122-111");
 
         //then
-        Assertions.assertThat(result.contains(userFirstName)).isTrue();
-        Assertions.assertThat(result.contains(userLastName)).isTrue();
+        assertThat(result.getFirstName().equals(userFirstName));
+        assertThat(result.getLastName().equals(userLastName));
     }
 }

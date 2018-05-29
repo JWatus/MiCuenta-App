@@ -158,7 +158,7 @@ public class PaymentPlanServiceTest {
 
         //given
         Debtor debtor = dataCreator.createDebtor();
-        debtor.setSetOfDebts(new HashSet<>());
+        debtor.setDebts(new HashSet<>());
         accountsRepository.save(debtor);
         PaymentDeclaration paymentDeclaration = new PaymentDeclaration(
                 BigDecimal.valueOf(155550).setScale(2, RoundingMode.HALF_EVEN),

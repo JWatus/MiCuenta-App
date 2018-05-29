@@ -1,6 +1,7 @@
 package pl.sii.eu.micuenta.controller;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiResponse;
@@ -32,17 +33,20 @@ public class AccountController {
     private final UpdatePaymentService updatePaymentService;
     private final DataCreator dataCreator;
     private final AccountsRepository accountsRepository;
+    private ObjectMapper objectMapper;
 
     public AccountController(DataDebtorService dataDebtorService,
                              PaymentPlanService paymentPlanService,
                              UpdatePaymentService updatePaymentService,
                              DataCreator dataCreator,
-                             AccountsRepository accountsRepository) {
+                             AccountsRepository accountsRepository,
+                             ObjectMapper objectMapper) {
         this.dataDebtorService = dataDebtorService;
         this.paymentPlanService = paymentPlanService;
         this.updatePaymentService = updatePaymentService;
         this.dataCreator = dataCreator;
         this.accountsRepository = accountsRepository;
+        this.objectMapper = objectMapper;
     }
 
     @ApiOperation(value = "Returns: answer if debtor is present in MiCuenta application")
@@ -62,7 +66,7 @@ public class AccountController {
     @RequestMapping(value = "/balance/{ssn}", produces = MediaType.APPLICATION_JSON, method = RequestMethod.GET)
     public String getBalance(@PathVariable String ssn) throws JsonProcessingException {
 
-        return dataDebtorService.getDebtorBySsn(ssn);
+        return objectMapper.writeValueAsString(dataDebtorService.getDebtorBySsn(ssn));
     }
 
     @ApiOperation(value = "Returns: payment plan based on received amount")

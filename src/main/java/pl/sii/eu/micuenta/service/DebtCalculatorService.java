@@ -21,7 +21,7 @@ class DebtCalculatorService {
 
     List<Debt> getListOfOldestDebts(Debtor debtor) {
         return debtor
-                .getSetOfDebts()
+                .getDebts()
                 .stream()
                 .filter(d -> d.getDebtAmount().compareTo(BigDecimal.ZERO) > 0)
                 .sorted(Comparator.comparing(Debt::getRepaymentDate))
@@ -30,7 +30,7 @@ class DebtCalculatorService {
 
     BigDecimal getSumOfDebts(Debtor debtor) {
         return debtor
-                .getSetOfDebts()
+                .getDebts()
                 .stream()
                 .map(Debt::getDebtAmount)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
@@ -38,7 +38,7 @@ class DebtCalculatorService {
 
     BigDecimal getSumOfPayments(Debt oldestDebt) {
         return oldestDebt
-                .getSetOfPayments()
+                .getPayments()
                 .stream()
                 .map(Payment::getPaymentAmount)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);

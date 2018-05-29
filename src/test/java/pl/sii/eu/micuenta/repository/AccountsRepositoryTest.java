@@ -44,18 +44,18 @@ public class AccountsRepositoryTest {
         assertThat(expected.getFirstName()).isEqualTo(result.getFirstName());
         assertThat(expected.getLastName()).isEqualTo(result.getLastName());
         assertThat(expected.getSsn()).isEqualTo(result.getSsn());
-        assertThat(expected.getSetOfDebts().size()).isEqualTo(result.getSetOfDebts().size());
+        assertThat(expected.getDebts().size()).isEqualTo(result.getDebts().size());
 
-        Debt expectedDebt = expected.getSetOfDebts().iterator().next();
-        Debt resultDebt = result.getSetOfDebts().iterator().next();
+        Debt expectedDebt = expected.getDebts().iterator().next();
+        Debt resultDebt = result.getDebts().iterator().next();
 
         assertThat(expectedDebt.getDebtAmount()).isEqualTo(resultDebt.getDebtAmount());
         assertThat(expectedDebt.getRepaymentDate()).isEqualTo(resultDebt.getRepaymentDate());
-        assertThat(resultDebt.getSetOfPayments()).isNotEmpty();
-        assertThat(expectedDebt.getSetOfPayments().size()).isEqualTo(resultDebt.getSetOfPayments().size());
+        assertThat(resultDebt.getPayments()).isNotEmpty();
+        assertThat(expectedDebt.getPayments().size()).isEqualTo(resultDebt.getPayments().size());
 
-        Payment expectedPayment = expectedDebt.getSetOfPayments().iterator().next();
-        Payment resultPayment = resultDebt.getSetOfPayments().iterator().next();
+        Payment expectedPayment = expectedDebt.getPayments().iterator().next();
+        Payment resultPayment = resultDebt.getPayments().iterator().next();
 
         assertThat(expectedPayment.getPaymentAmount()).isEqualTo(resultPayment.getPaymentAmount());
         assertThat(expectedPayment.getPaymentDate()).isEqualTo(resultPayment.getPaymentDate());

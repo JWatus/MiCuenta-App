@@ -21,9 +21,9 @@ public class Debtor implements Serializable {
     @ApiModelProperty(access = "private", name = "ssn", example = "980-122-111", value = "Debtor's social security number")
     private String ssn;
 
-    @ApiModelProperty(access = "private", name = "setOfDebts", dataType = "Set", value = "Debtor's set of debts")
+    @ApiModelProperty(access = "private", name = "debts", dataType = "Set", value = "Debtor's set of debts")
     @OneToMany(mappedBy = "debtor", fetch = FetchType.EAGER, cascade = CascadeType.ALL)
-    private Set<Debt> setOfDebts;
+    private Set<Debt> debts;
 
     public Long getId() {
         return id;
@@ -57,28 +57,28 @@ public class Debtor implements Serializable {
         this.ssn = ssn;
     }
 
-    public Set<Debt> getSetOfDebts() {
-        return Collections.unmodifiableSet(setOfDebts);
+    public Set<Debt> getDebts() {
+        return Collections.unmodifiableSet(debts);
     }
 
-    public void setSetOfDebts(Set<Debt> setOfDebts) {
-        this.setOfDebts = new HashSet<>(setOfDebts);
+    public void setDebts(Set<Debt> debts) {
+        this.debts = new HashSet<>(debts);
     }
 
     public void addToSetOfDebts(Debt debt) {
         debt.setDebtor(this);
-        this.setOfDebts.add(debt);
+        this.debts.add(debt);
     }
 
     public Debtor() {
     }
 
-    public Debtor(String firstName, String lastName, String ssn, Set<Debt> setOfDebts) {
+    public Debtor(String firstName, String lastName, String ssn, Set<Debt> debts) {
         this.firstName = firstName;
         this.lastName = lastName;
         this.ssn = ssn;
-        this.setOfDebts = new HashSet<>(setOfDebts);
-        for (Debt debt : this.setOfDebts) {
+        this.debts = new HashSet<>(debts);
+        for (Debt debt : this.debts) {
             debt.setDebtor(this);
         }
     }

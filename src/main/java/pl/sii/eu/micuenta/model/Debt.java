@@ -33,9 +33,9 @@ public class Debt implements Serializable {
     @JsonIgnore
     private Debtor debtor;
 
-    @ApiModelProperty(access = "private", name = "setOfPayments", dataType = "Set", value = "Debtor's set of payments")
+    @ApiModelProperty(access = "private", name = "payments", dataType = "Set", value = "Debtor's set of payments")
     @OneToMany(mappedBy = "debt", fetch = FetchType.EAGER, cascade = CascadeType.ALL)
-    private Set<Payment> setOfPayments;
+    private Set<Payment> payments;
 
     public Long getId() {
         return id;
@@ -85,29 +85,29 @@ public class Debt implements Serializable {
         this.debtor = debtor;
     }
 
-    public Set<Payment> getSetOfPayments() {
-        return Collections.unmodifiableSet(setOfPayments);
+    public Set<Payment> getPayments() {
+        return Collections.unmodifiableSet(payments);
     }
 
-    public void setSetOfPayments(Set<Payment> setOfPayments) {
-        this.setOfPayments = new HashSet<>(setOfPayments);
+    public void setPayments(Set<Payment> payments) {
+        this.payments = new HashSet<>(payments);
     }
 
     public void addToSetOfPayments(Payment payment) {
         payment.setDebt(this);
-        this.setOfPayments.add(payment);
+        this.payments.add(payment);
     }
 
     public Debt() {
     }
 
-    public Debt(BigDecimal debtAmount, LocalDate repaymentDate, Set<Payment> setOfPayments, String uuid, String debtName) {
+    public Debt(BigDecimal debtAmount, LocalDate repaymentDate, Set<Payment> payments, String uuid, String debtName) {
         this.debtAmount = debtAmount;
         this.repaymentDate = repaymentDate;
         this.uuid = uuid;
         this.debtName = debtName;
-        this.setOfPayments = new HashSet<>(setOfPayments);
-        for (Payment payment : this.setOfPayments) {
+        this.payments = new HashSet<>(payments);
+        for (Payment payment : this.payments) {
             payment.setDebt(this);
         }
     }
