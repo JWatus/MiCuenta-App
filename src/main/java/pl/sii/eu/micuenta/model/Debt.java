@@ -10,6 +10,7 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.Objects;
 import java.util.Set;
 
 @Entity
@@ -112,4 +113,21 @@ public class Debt implements Serializable {
         }
     }
 
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Debt debt = (Debt) o;
+        return Objects.equals(debtAmount, debt.debtAmount) &&
+                Objects.equals(repaymentDate, debt.repaymentDate) &&
+                Objects.equals(uuid, debt.uuid) &&
+                Objects.equals(debtName, debt.debtName) &&
+                Objects.equals(payments, debt.payments);
+    }
+
+    @Override
+    public int hashCode() {
+
+        return Objects.hash(debtAmount, repaymentDate, uuid, debtName, payments);
+    }
 }

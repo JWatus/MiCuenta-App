@@ -9,6 +9,7 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import java.io.Serializable;
 import java.time.LocalDate;
+import java.util.Objects;
 
 @Entity
 public class CreditCard implements Serializable {
@@ -98,4 +99,21 @@ public class CreditCard implements Serializable {
         this.expDate = expDate;
     }
 
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        CreditCard that = (CreditCard) o;
+        return Objects.equals(ccNumber, that.ccNumber) &&
+                Objects.equals(cvv, that.cvv) &&
+                Objects.equals(firstName, that.firstName) &&
+                Objects.equals(lastName, that.lastName) &&
+                Objects.equals(issuingNetwork, that.issuingNetwork) &&
+                Objects.equals(expDate, that.expDate);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(ccNumber, cvv, firstName, lastName, issuingNetwork, expDate);
+    }
 }

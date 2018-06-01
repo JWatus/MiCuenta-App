@@ -8,6 +8,7 @@ import javax.persistence.*;
 import java.io.Serializable;
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.Objects;
 
 @Entity
 public class Payment implements Serializable {
@@ -90,4 +91,20 @@ public class Payment implements Serializable {
         this.creditCard = creditCard;
     }
 
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Payment payment = (Payment) o;
+        return Objects.equals(paymentDate, payment.paymentDate) &&
+                Objects.equals(paymentAmount, payment.paymentAmount) &&
+                Objects.equals(clientId, payment.clientId) &&
+                Objects.equals(creditCard, payment.creditCard);
+    }
+
+    @Override
+    public int hashCode() {
+
+        return Objects.hash(paymentDate, paymentAmount, clientId, creditCard);
+    }
 }

@@ -6,11 +6,22 @@ import javax.persistence.*;
 import java.io.Serializable;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.Objects;
 import java.util.Set;
 
 @Entity
-public class Debtor implements Serializable {
+@NamedQueries({
+        @NamedQuery(
+                name = "findFirstBySsn",
+                query = "select d from Debtor d where d.ssn=:ssn"
+        ),
+        @NamedQuery(
+                name = "findFirstBySsnFirstNameLastName",
+                query = "select d from Debtor d where d.ssn =:ssn and d.firstName =:firstName and d.lastName =:lastName"
+        )
+})
 
+public class Debtor implements Serializable {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -19,6 +30,7 @@ public class Debtor implements Serializable {
     @ApiModelProperty(access = "private", name = "lastName", example = "Watus", value = "Debtor's last name")
     private String lastName;
     @ApiModelProperty(access = "private", name = "ssn", example = "980-122-111", value = "Debtor's social security number")
+    @Column(unique = true)
     private String ssn;
 
     @ApiModelProperty(access = "private", name = "debts", dataType = "Set", value = "Debtor's set of debts")
@@ -83,4 +95,20 @@ public class Debtor implements Serializable {
         }
     }
 
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Debtor debtor = (Debtor) o;
+        return Objects.equals(firstName, debtor.firstName) &&
+                Objects.equals(lastName, debtor.lastName) &&
+                Objects.equals(ssn, debtor.ssn) &&
+                Objects.equals(debts, debtor.debts);
+    }
+
+    @Override
+    public int hashCode() {
+
+        return Objects.hash(firstName, lastName, ssn, debts);
+    }
 }
