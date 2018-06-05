@@ -3,7 +3,7 @@ package pl.sii.eu.micuenta.conf;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
-import pl.sii.eu.micuenta.model.Debtor;
+import pl.sii.eu.micuenta.model.model_entity.DebtorEntity;
 import pl.sii.eu.micuenta.repository.AccountsRepository;
 
 import javax.annotation.PostConstruct;
@@ -23,8 +23,8 @@ public class AppConfig {
 
     @PostConstruct
     public void init() {
-        Debtor debtor = dataCreator.createDebtor();
-        accountsRepository.save(debtor);
+        DebtorEntity debtorEntity = dataCreator.createDebtor();
+        accountsRepository.save(debtorEntity);
     }
 }
 

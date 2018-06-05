@@ -4,7 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.jms.annotation.JmsListener;
 import org.springframework.stereotype.Component;
 import pl.sii.eu.micuenta.jms.sender.MessageSender;
-import pl.sii.eu.micuenta.model.form.PaymentConfirmation;
+import pl.sii.eu.micuenta.model.model_dto.form.PaymentConfirmation;
 import pl.sii.eu.micuenta.service.UpdatePaymentService;
 
 import javax.jms.JMSException;
@@ -29,7 +29,7 @@ public class MessagePaymentConfirmationReceiver {
         String json = textMessage.getText();
         PaymentConfirmation paymentConfirmation = objectMapper.readValue(json, PaymentConfirmation.class);
         String status = updatePaymentService.updateDebtsPaymentsBasedOnPaymentConfirmation(paymentConfirmation).toString();
-        String queue = "jms.queue." + textMessage.getJMSCorrelationID().toLowerCase();
+        String queue = "jms.queue." + textMessage.getStringProperty("client").toLowerCase();
         messageSender.send(queue, status, "paymentsupdate");
     }
 }

@@ -1,10 +1,9 @@
-package pl.sii.eu.micuenta.model;
+package pl.sii.eu.micuenta.model.model_dto;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import io.swagger.annotations.ApiModelProperty;
 import org.springframework.format.annotation.DateTimeFormat;
+import pl.sii.eu.micuenta.model.model_entity.DebtEntity;
 
-import javax.persistence.*;
 import java.io.Serializable;
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -13,30 +12,37 @@ import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
 
-@Entity
 public class Debt implements Serializable {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    @ApiModelProperty(access = "private", name = "debtAmount", example = "50000.0", value = "Amount of Debt")
     private BigDecimal debtAmount;
-    @ApiModelProperty(access = "private", name = "repaymentDate", example = "2018-05-08", value = "Date of repayment")
     @DateTimeFormat(pattern = "yyyy-MM-dd")
     private LocalDate repaymentDate;
-    @ApiModelProperty(access = "private", name = "uuid", example = "999888777666", value = "Universal unique identifier")
     private String uuid;
-    @ApiModelProperty(access = "private", name = "debtName", example = "fastLoan", value = "Name of the loan")
     private String debtName;
-
-    @ApiModelProperty(access = "private", name = "debtor", example = "{}", value = "Debtor")
-    @ManyToOne
     @JsonIgnore
     private Debtor debtor;
-
-    @ApiModelProperty(access = "private", name = "payments", dataType = "Set", value = "Debtor's set of payments")
-    @OneToMany(mappedBy = "debt", fetch = FetchType.EAGER, cascade = CascadeType.ALL)
     private Set<Payment> payments;
+
+    public static Debt convertFromDebtEntity(DebtEntity debtEntity) {
+
+        Debt debt = new Debt();
+
+        debt.setDebtAmount(debtEntity.getDebtAmount());
+        debt.setDebtName(debtEntity.getDebtName());
+        debt.setRepaymentDate(debtEntity.getRepaymentDate());
+        debt.setUuid(debtEntity.getUuid());
+
+        Set<Payment> payments = new HashSet<>();
+        debtEntity.getPaymentEntities().forEach(p -> payments.add(
+                Payment.convertFromPaymentEntity(p)));
+        debt.setPayments(payments);
+
+        return debt;
+    }
+
+    public Debt() {
+    }
 
     public Long getId() {
         return id;
@@ -99,35 +105,21 @@ public class Debt implements Serializable {
         this.payments.add(payment);
     }
 
-    public Debt() {
-    }
-
-    public Debt(BigDecimal debtAmount, LocalDate repaymentDate, Set<Payment> payments, String uuid, String debtName) {
-        this.debtAmount = debtAmount;
-        this.repaymentDate = repaymentDate;
-        this.uuid = uuid;
-        this.debtName = debtName;
-        this.payments = new HashSet<>(payments);
-        for (Payment payment : this.payments) {
-            payment.setDebt(this);
-        }
-    }
-
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+        if (!(o instanceof Debt)) return false;
         Debt debt = (Debt) o;
-        return Objects.equals(debtAmount, debt.debtAmount) &&
-                Objects.equals(repaymentDate, debt.repaymentDate) &&
-                Objects.equals(uuid, debt.uuid) &&
-                Objects.equals(debtName, debt.debtName) &&
+        return Objects.equals(getDebtAmount(), debt.getDebtAmount()) &&
+                Objects.equals(getRepaymentDate(), debt.getRepaymentDate()) &&
+                Objects.equals(getUuid(), debt.getUuid()) &&
+                Objects.equals(getDebtName(), debt.getDebtName()) &&
                 Objects.equals(payments, debt.payments);
     }
 
     @Override
     public int hashCode() {
 
-        return Objects.hash(debtAmount, repaymentDate, uuid, debtName, payments);
+        return Objects.hash(getDebtAmount(), getRepaymentDate(), getUuid(), getDebtName(), payments);
     }
 }

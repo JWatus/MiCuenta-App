@@ -4,7 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.jms.annotation.JmsListener;
 import org.springframework.stereotype.Component;
 import pl.sii.eu.micuenta.jms.sender.MessageSender;
-import pl.sii.eu.micuenta.model.Debtor;
+import pl.sii.eu.micuenta.model.model_dto.Debtor;
 import pl.sii.eu.micuenta.service.DataDebtorService;
 
 import javax.jms.JMSException;
@@ -29,7 +29,7 @@ public class MessageDebtorReceiver {
         String json = textMessage.getText();
         Debtor debtor = objectMapper.readValue(json, Debtor.class);
         String status = dataDebtorService.validateDebtorsData(debtor).toString();
-        String queue = "jms.queue." + textMessage.getJMSCorrelationID().toLowerCase();
+        String queue = "jms.queue." + textMessage.getStringProperty("client").toLowerCase();
         messageSender.send(queue, status, "login");
     }
 }

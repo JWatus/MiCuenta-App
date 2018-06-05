@@ -4,8 +4,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.jms.annotation.JmsListener;
 import org.springframework.stereotype.Component;
 import pl.sii.eu.micuenta.jms.sender.MessageSender;
-import pl.sii.eu.micuenta.model.form.PaymentDeclaration;
-import pl.sii.eu.micuenta.model.form.PaymentPlan;
+import pl.sii.eu.micuenta.model.model_dto.form.PaymentDeclaration;
+import pl.sii.eu.micuenta.model.model_dto.form.PaymentPlan;
 import pl.sii.eu.micuenta.service.PaymentPlanService;
 
 import javax.jms.JMSException;
@@ -30,7 +30,8 @@ public class MessagePaymentDeclarationReceiver {
         String json = textMessage.getText();
         PaymentDeclaration paymentDeclaration = objectMapper.readValue(json, PaymentDeclaration.class);
         PaymentPlan paymentPlan = paymentPlanService.getPaymentPlanBasedOnPaymentDeclaration(paymentDeclaration);
-        String queue = "jms.queue." + textMessage.getJMSCorrelationID().toLowerCase();
-        messageSender.send(queue, paymentPlan, "paymentplan");
+        String queue = "jms.queue." + textMessage.getStringProperty("client").toLowerCase();
+        String message = objectMapper.writeValueAsString(paymentPlan);
+        messageSender.send(queue, message, "paymentplan");
     }
 }

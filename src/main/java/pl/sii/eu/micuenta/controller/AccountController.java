@@ -9,10 +9,10 @@ import io.swagger.annotations.ApiResponses;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import pl.sii.eu.micuenta.conf.DataCreator;
-import pl.sii.eu.micuenta.model.Debtor;
-import pl.sii.eu.micuenta.model.form.PaymentConfirmation;
-import pl.sii.eu.micuenta.model.form.PaymentDeclaration;
-import pl.sii.eu.micuenta.model.form.PaymentPlan;
+import pl.sii.eu.micuenta.model.model_dto.Debtor;
+import pl.sii.eu.micuenta.model.model_dto.form.PaymentConfirmation;
+import pl.sii.eu.micuenta.model.model_dto.form.PaymentDeclaration;
+import pl.sii.eu.micuenta.model.model_dto.form.PaymentPlan;
 import pl.sii.eu.micuenta.repository.AccountsRepository;
 import pl.sii.eu.micuenta.service.DataDebtorService;
 import pl.sii.eu.micuenta.service.PaymentPlanService;
@@ -49,7 +49,7 @@ public class AccountController {
         this.objectMapper = objectMapper;
     }
 
-    @ApiOperation(value = "Returns: answer if debtor is present in MiCuenta application")
+    @ApiOperation(value = "Returns: answer if debtorEntity is present in MiCuenta application")
     @ApiResponses(
             value = {
                     @ApiResponse(code = 200, message = "Debtor is found in MiCuenta"),
@@ -58,21 +58,18 @@ public class AccountController {
     )
     @RequestMapping(value = "/login", consumes = MediaType.APPLICATION_JSON, method = RequestMethod.POST)
     public ResponseEntity<String> login(@RequestBody Debtor debtor) {
-
         return dataDebtorService.validateDebtorsData(debtor);
     }
 
     @ApiOperation(value = "Returns: debtor with list of debts")
     @RequestMapping(value = "/balance/{ssn}", produces = MediaType.APPLICATION_JSON, method = RequestMethod.GET)
     public String getBalance(@PathVariable String ssn) throws JsonProcessingException {
-
         return objectMapper.writeValueAsString(dataDebtorService.getDebtorBySsn(ssn));
     }
 
     @ApiOperation(value = "Returns: payment plan based on received amount")
     @RequestMapping(value = "/paymentplan", consumes = MediaType.APPLICATION_JSON, method = RequestMethod.POST)
     public PaymentPlan getPaymentPlan(@RequestBody PaymentDeclaration paymentDeclaration) {
-
         return paymentPlanService.getPaymentPlanBasedOnPaymentDeclaration(paymentDeclaration);
     }
 
@@ -86,7 +83,6 @@ public class AccountController {
     )
     @RequestMapping(value = "/paymentmethods/creditcard", consumes = MediaType.APPLICATION_JSON, method = RequestMethod.POST)
     public ResponseEntity updatePayments(@RequestBody PaymentConfirmation paymentConfirmation) {
-
         return updatePaymentService.updateDebtsPaymentsBasedOnPaymentConfirmation(paymentConfirmation);
     }
 

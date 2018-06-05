@@ -12,7 +12,8 @@ import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.context.junit4.SpringRunner;
 import pl.sii.eu.micuenta.conf.AppConfig;
 import pl.sii.eu.micuenta.conf.DataCreator;
-import pl.sii.eu.micuenta.model.Debtor;
+import pl.sii.eu.micuenta.model.model_dto.Debtor;
+import pl.sii.eu.micuenta.model.model_entity.DebtorEntity;
 import pl.sii.eu.micuenta.repository.AccountsRepository;
 
 import javax.transaction.Transactional;
@@ -41,13 +42,13 @@ public class DataDebtorServiceTest {
     public void shouldResponseWithHttpStatusOkWhenUserWasSuccessfullyVerified() {
 
         //given
-        Debtor debtor = dataCreator.createDebtor();
-        accountsRepository.save(debtor);
+        DebtorEntity debtorEntity = dataCreator.createDebtor();
+        accountsRepository.save(debtorEntity);
 
-        Debtor receivedDebtor = dataCreator.createDebtor();
+        DebtorEntity receivedDebtorEntity = dataCreator.createDebtor();
 
         //when
-        ResponseEntity result = dataDebtorService.validateDebtorsData(receivedDebtor);
+        ResponseEntity result = dataDebtorService.validateDebtorsData(Debtor.convertFromDebtorEntity(receivedDebtorEntity));
 
         //then
         assertThat(result).isEqualTo(new ResponseEntity(HttpStatus.OK));
@@ -59,13 +60,15 @@ public class DataDebtorServiceTest {
     public void shouldResponseWithHttpStatusNotFoundWhenUserWasNotSuccessfullyVerified() {
 
         //given
-        Debtor debtor = dataCreator.createDebtor();
-        accountsRepository.save(debtor);
+        DebtorEntity debtorEntity = dataCreator.createDebtor();
+        accountsRepository.save(debtorEntity);
 
-        Debtor receivedDebtor = new Debtor();
+        DebtorEntity receivedDebtorEntity = dataCreator.createDebtor();
+        receivedDebtorEntity.setFirstName("Adam");
+        receivedDebtorEntity.setLastName("Menethil");
 
         //when
-        ResponseEntity result = dataDebtorService.validateDebtorsData(receivedDebtor);
+        ResponseEntity result = dataDebtorService.validateDebtorsData(Debtor.convertFromDebtorEntity(receivedDebtorEntity));
 
         //then
         assertThat(result).isEqualTo(new ResponseEntity(HttpStatus.NOT_FOUND));
@@ -77,7 +80,7 @@ public class DataDebtorServiceTest {
     public void shouldReturnChosenDebtorWhenDataIsValid() {
 
         //given
-        Debtor debtor = dataCreator.createDebtor();
+        DebtorEntity debtor = dataCreator.createDebtor();
         accountsRepository.save(debtor);
         String userFirstName = "Jakub";
         String userLastName = "Watus";

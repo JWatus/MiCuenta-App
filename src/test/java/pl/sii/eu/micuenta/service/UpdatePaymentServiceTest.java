@@ -10,11 +10,12 @@ import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.context.junit4.SpringRunner;
 import pl.sii.eu.micuenta.conf.AppConfig;
 import pl.sii.eu.micuenta.conf.DataCreator;
-import pl.sii.eu.micuenta.model.CreditCard;
-import pl.sii.eu.micuenta.model.Debt;
-import pl.sii.eu.micuenta.model.Debtor;
-import pl.sii.eu.micuenta.model.form.PaymentConfirmation;
-import pl.sii.eu.micuenta.model.form.PaymentDeclaration;
+import pl.sii.eu.micuenta.model.model_dto.CreditCard;
+import pl.sii.eu.micuenta.model.model_entity.CreditCardEntity;
+import pl.sii.eu.micuenta.model.model_entity.DebtEntity;
+import pl.sii.eu.micuenta.model.model_entity.DebtorEntity;
+import pl.sii.eu.micuenta.model.model_dto.form.PaymentConfirmation;
+import pl.sii.eu.micuenta.model.model_dto.form.PaymentDeclaration;
 import pl.sii.eu.micuenta.repository.AccountsRepository;
 
 import javax.transaction.Transactional;
@@ -46,17 +47,17 @@ public class UpdatePaymentServiceTest {
     public void shouldProperlyExtendsPaymentsSetsSizeAfterAddingPaymentWithChosenDebtId() {
 
         //given
-        Debtor debtor = dataCreator.createDebtor();
-        accountsRepository.save(debtor);
+        DebtorEntity debtorEntity = dataCreator.createDebtor();
+        accountsRepository.save(debtorEntity);
 
-        CreditCard creditCardOne = new CreditCard("1234567890123456", "809", "Sylvanas", "Windrunner", "MasterCard", LocalDate.now());
-        CreditCard creditCardTwo = new CreditCard("0987654321098765", "312", "Anduin", "Wrynn", "VISA", LocalDate.now());
+        CreditCardEntity creditCardEntityOne = new CreditCardEntity("1234567890123456", "809", "Sylvanas", "Windrunner", "MasterCard", LocalDate.now());
+        CreditCardEntity creditCardEntityTwo = new CreditCardEntity("0987654321098765", "312", "Anduin", "Wrynn", "VISA", LocalDate.now());
         PaymentDeclaration paymentDeclarationOne = new PaymentDeclaration(BigDecimal.valueOf(2043), "980-122-111", "PLWT/871422");
         PaymentDeclaration paymentDeclarationTwo = new PaymentDeclaration(BigDecimal.valueOf(3456), "980-122-111", "PLWT/871422");
         PaymentDeclaration paymentDeclarationThree = new PaymentDeclaration(BigDecimal.valueOf(234), "980-122-111", "PLWT/871422");
-        PaymentConfirmation paymentConfirmationOne = new PaymentConfirmation(paymentDeclarationOne, "Horde", creditCardOne);
-        PaymentConfirmation paymentConfirmationTwo = new PaymentConfirmation(paymentDeclarationTwo, "Alliance", creditCardTwo);
-        PaymentConfirmation paymentConfirmationThree = new PaymentConfirmation(paymentDeclarationThree, "Alliance", creditCardTwo);
+        PaymentConfirmation paymentConfirmationOne = new PaymentConfirmation(paymentDeclarationOne, "Horde", CreditCard.convertFromCreditCardEntity(creditCardEntityOne));
+        PaymentConfirmation paymentConfirmationTwo = new PaymentConfirmation(paymentDeclarationTwo, "Alliance", CreditCard.convertFromCreditCardEntity(creditCardEntityTwo));
+        PaymentConfirmation paymentConfirmationThree = new PaymentConfirmation(paymentDeclarationThree, "Alliance", CreditCard.convertFromCreditCardEntity(creditCardEntityTwo));
 
         //when
         updatePaymentService.updateDebtsPaymentsBasedOnPaymentConfirmation(paymentConfirmationOne);
@@ -70,11 +71,11 @@ public class UpdatePaymentServiceTest {
         int resultPaymentsSizeOfDebtOne = 0;
         int resultPaymentsSizeOfDebtTwo = 0;
 
-        for (Debt d : debtor.getDebts()) {
+        for (DebtEntity d : debtorEntity.getDebtEntities()) {
             if (d.getUuid().equals("PLWT/871422"))
-                resultPaymentsSizeOfDebtOne = d.getPayments().size();
+                resultPaymentsSizeOfDebtOne = d.getPaymentEntities().size();
             if (d.getUuid().equals("ADWR/595501"))
-                resultPaymentsSizeOfDebtTwo = d.getPayments().size();
+                resultPaymentsSizeOfDebtTwo = d.getPaymentEntities().size();
         }
 
         assertThat(expectedPaymentsSizeOfDebtOne).isEqualTo(resultPaymentsSizeOfDebtOne);
@@ -87,17 +88,17 @@ public class UpdatePaymentServiceTest {
     public void shouldProperlyExtendsPaymentsSetsSizeAfterAddingPaymentWithoutChosenDebtId() {
 
         //given
-        Debtor debtor = dataCreator.createDebtor();
-        accountsRepository.save(debtor);
+        DebtorEntity debtorEntity = dataCreator.createDebtor();
+        accountsRepository.save(debtorEntity);
 
-        CreditCard creditCardOne = new CreditCard("1234567890123456", "809", "Sylvanas", "Windrunner", "MasterCard", LocalDate.now());
-        CreditCard creditCardTwo = new CreditCard("0987654321098765", "312", "Anduin", "Wrynn", "VISA", LocalDate.now());
+        CreditCardEntity creditCardEntityOne = new CreditCardEntity("1234567890123456", "809", "Sylvanas", "Windrunner", "MasterCard", LocalDate.now());
+        CreditCardEntity creditCardEntityTwo = new CreditCardEntity("0987654321098765", "312", "Anduin", "Wrynn", "VISA", LocalDate.now());
         PaymentDeclaration paymentDeclarationOne = new PaymentDeclaration(BigDecimal.valueOf(2043), "980-122-111", "");
         PaymentDeclaration paymentDeclarationTwo = new PaymentDeclaration(BigDecimal.valueOf(35456), "980-122-111", "");
         PaymentDeclaration paymentDeclarationThree = new PaymentDeclaration(BigDecimal.valueOf(234), "980-122-111", "");
-        PaymentConfirmation paymentConfirmationOne = new PaymentConfirmation(paymentDeclarationOne, "Horde", creditCardOne);
-        PaymentConfirmation paymentConfirmationTwo = new PaymentConfirmation(paymentDeclarationTwo, "Alliance", creditCardTwo);
-        PaymentConfirmation paymentConfirmationThree = new PaymentConfirmation(paymentDeclarationThree, "Alliance", creditCardTwo);
+        PaymentConfirmation paymentConfirmationOne = new PaymentConfirmation(paymentDeclarationOne, "Horde", CreditCard.convertFromCreditCardEntity(creditCardEntityOne));
+        PaymentConfirmation paymentConfirmationTwo = new PaymentConfirmation(paymentDeclarationTwo, "Alliance", CreditCard.convertFromCreditCardEntity(creditCardEntityTwo));
+        PaymentConfirmation paymentConfirmationThree = new PaymentConfirmation(paymentDeclarationThree, "Alliance", CreditCard.convertFromCreditCardEntity(creditCardEntityTwo));
 
         //when
         updatePaymentService.updateDebtsPaymentsBasedOnPaymentConfirmation(paymentConfirmationOne);
@@ -111,11 +112,11 @@ public class UpdatePaymentServiceTest {
         int resultPaymentsSizeOfDebtOne = 0;
         int resultPaymentsSizeOfDebtTwo = 0;
 
-        for (Debt d : debtor.getDebts()) {
+        for (DebtEntity d : debtorEntity.getDebtEntities()) {
             if (d.getUuid().equals("ADWR/595501"))
-                resultPaymentsSizeOfDebtOne = d.getPayments().size();
+                resultPaymentsSizeOfDebtOne = d.getPaymentEntities().size();
             if (d.getUuid().equals("PLWT/871422"))
-                resultPaymentsSizeOfDebtTwo = d.getPayments().size();
+                resultPaymentsSizeOfDebtTwo = d.getPaymentEntities().size();
         }
 
         assertThat(expectedPaymentsSizeOfDebtOne).isEqualTo(resultPaymentsSizeOfDebtOne);
@@ -128,18 +129,18 @@ public class UpdatePaymentServiceTest {
     public void shouldProperlyUpdateSumOfPaymentsAmountAfterAddingPaymentWithChosenDebtId() {
 
         //given
-        Debtor debtor = dataCreator.createDebtor();
-        accountsRepository.save(debtor);
+        DebtorEntity debtorEntity = dataCreator.createDebtor();
+        accountsRepository.save(debtorEntity);
 
-        CreditCard creditCardOne = new CreditCard("1234567890123456", "809", "Sylvanas", "Windrunner", "MasterCard", LocalDate.now());
-        CreditCard creditCardTwo = new CreditCard("0987654321098765", "312", "Anduin", "Wrynn", "VISA", LocalDate.now());
-        CreditCard creditCardThree = new CreditCard("1010101010101010", "312", "Darion", "Mograine", "VISA", LocalDate.now());
+        CreditCardEntity creditCardEntityOne = new CreditCardEntity("1234567890123456", "809", "Sylvanas", "Windrunner", "MasterCard", LocalDate.now());
+        CreditCardEntity creditCardEntityTwo = new CreditCardEntity("0987654321098765", "312", "Anduin", "Wrynn", "VISA", LocalDate.now());
+        CreditCardEntity creditCardEntityThree = new CreditCardEntity("1010101010101010", "312", "Darion", "Mograine", "VISA", LocalDate.now());
         PaymentDeclaration paymentDeclarationOne = new PaymentDeclaration(BigDecimal.valueOf(2043), "980-122-111", "PLWT/871422");
         PaymentDeclaration paymentDeclarationTwo = new PaymentDeclaration(BigDecimal.valueOf(35456), "980-122-111", "ADWR/595501");
         PaymentDeclaration paymentDeclarationThree = new PaymentDeclaration(BigDecimal.valueOf(234), "980-122-111", "CRTP/909088");
-        PaymentConfirmation paymentConfirmationOne = new PaymentConfirmation(paymentDeclarationOne, "Horde", creditCardOne);
-        PaymentConfirmation paymentConfirmationTwo = new PaymentConfirmation(paymentDeclarationTwo, "Alliance", creditCardTwo);
-        PaymentConfirmation paymentConfirmationThree = new PaymentConfirmation(paymentDeclarationThree, "Ebon Blade", creditCardThree);
+        PaymentConfirmation paymentConfirmationOne = new PaymentConfirmation(paymentDeclarationOne, "Horde", CreditCard.convertFromCreditCardEntity(creditCardEntityOne));
+        PaymentConfirmation paymentConfirmationTwo = new PaymentConfirmation(paymentDeclarationTwo, "Alliance", CreditCard.convertFromCreditCardEntity(creditCardEntityTwo));
+        PaymentConfirmation paymentConfirmationThree = new PaymentConfirmation(paymentDeclarationThree, "Ebon Blade", CreditCard.convertFromCreditCardEntity(creditCardEntityThree));
 
         //when
         updatePaymentService.updateDebtsPaymentsBasedOnPaymentConfirmation(paymentConfirmationOne);
@@ -157,7 +158,7 @@ public class UpdatePaymentServiceTest {
         BigDecimal resultPaymentsSizeOfDebtThree = BigDecimal.ZERO;
         BigDecimal resultPaymentsSizeOfDebtFour = BigDecimal.ZERO;
 
-        for (Debt d : debtor.getDebts()) {
+        for (DebtEntity d : debtorEntity.getDebtEntities()) {
             if (d.getUuid().equals("PLWT/871422"))
                 resultPaymentsSizeOfDebtOne = debtCalculatorService.getSumOfPayments(d).setScale(2, RoundingMode.HALF_EVEN);
             else if (d.getUuid().equals("ADWR/595501"))
@@ -180,18 +181,18 @@ public class UpdatePaymentServiceTest {
     public void shouldProperlyUpdateSumOfPaymentsAmountAfterAddingPaymentWithoutChosenDebtId() {
 
         //given
-        Debtor debtor = dataCreator.createDebtor();
-        accountsRepository.save(debtor);
+        DebtorEntity debtorEntity = dataCreator.createDebtor();
+        accountsRepository.save(debtorEntity);
 
-        CreditCard creditCardOne = new CreditCard("1234567890123456", "809", "Sylvanas", "Windrunner", "MasterCard", LocalDate.now());
-        CreditCard creditCardTwo = new CreditCard("0987654321098765", "312", "Anduin", "Wrynn", "VISA", LocalDate.now());
-        CreditCard creditCardThree = new CreditCard("1010101010101010", "312", "Darion", "Mograine", "VISA", LocalDate.now());
+        CreditCardEntity creditCardEntityOne = new CreditCardEntity("1234567890123456", "809", "Sylvanas", "Windrunner", "MasterCard", LocalDate.now());
+        CreditCardEntity creditCardEntityTwo = new CreditCardEntity("0987654321098765", "312", "Anduin", "Wrynn", "VISA", LocalDate.now());
+        CreditCardEntity creditCardEntityThree = new CreditCardEntity("1010101010101010", "312", "Darion", "Mograine", "VISA", LocalDate.now());
         PaymentDeclaration paymentDeclarationOne = new PaymentDeclaration(BigDecimal.valueOf(20250), "980-122-111", "");
         PaymentDeclaration paymentDeclarationTwo = new PaymentDeclaration(BigDecimal.valueOf(35456), "980-122-111", "");
         PaymentDeclaration paymentDeclarationThree = new PaymentDeclaration(BigDecimal.valueOf(2348), "980-122-111", "");
-        PaymentConfirmation paymentConfirmationOne = new PaymentConfirmation(paymentDeclarationOne, "Horde", creditCardOne);
-        PaymentConfirmation paymentConfirmationTwo = new PaymentConfirmation(paymentDeclarationTwo, "Alliance", creditCardTwo);
-        PaymentConfirmation paymentConfirmationThree = new PaymentConfirmation(paymentDeclarationThree, "Ebon Blade", creditCardThree);
+        PaymentConfirmation paymentConfirmationOne = new PaymentConfirmation(paymentDeclarationOne, "Horde", CreditCard.convertFromCreditCardEntity(creditCardEntityOne));
+        PaymentConfirmation paymentConfirmationTwo = new PaymentConfirmation(paymentDeclarationTwo, "Alliance", CreditCard.convertFromCreditCardEntity(creditCardEntityTwo));
+        PaymentConfirmation paymentConfirmationThree = new PaymentConfirmation(paymentDeclarationThree, "Ebon Blade", CreditCard.convertFromCreditCardEntity(creditCardEntityThree));
 
         //when
         updatePaymentService.updateDebtsPaymentsBasedOnPaymentConfirmation(paymentConfirmationOne);
@@ -209,7 +210,7 @@ public class UpdatePaymentServiceTest {
         BigDecimal resultPaymentsSizeOfDebtThree = BigDecimal.ZERO;
         BigDecimal resultPaymentsSizeOfDebtFour = BigDecimal.ZERO;
 
-        for (Debt d : debtor.getDebts()) {
+        for (DebtEntity d : debtorEntity.getDebtEntities()) {
             if (d.getUuid().equals("PLWT/871422"))
                 resultPaymentsSizeOfDebtOne = debtCalculatorService.getSumOfPayments(d).setScale(2, RoundingMode.HALF_EVEN);
             else if (d.getUuid().equals("ADWR/595501"))
@@ -232,12 +233,12 @@ public class UpdatePaymentServiceTest {
     public void shouldPaidAllDebtsWithPaymentAmountBiggerThanSumOfAllDebtorsDebts() {
 
         //given
-        Debtor debtor = dataCreator.createDebtor();
-        accountsRepository.save(debtor);
+        DebtorEntity debtorEntity = dataCreator.createDebtor();
+        accountsRepository.save(debtorEntity);
 
-        CreditCard creditCardOne = new CreditCard("1234567890123456", "111", "Arthas", "Menethil", "MasterCard", LocalDate.now());
+        CreditCardEntity creditCardEntityOne = new CreditCardEntity("1234567890123456", "111", "Arthas", "Menethil", "MasterCard", LocalDate.now());
         PaymentDeclaration paymentDeclarationOne = new PaymentDeclaration(BigDecimal.valueOf(175000), "980-122-111", "");
-        PaymentConfirmation paymentConfirmationOne = new PaymentConfirmation(paymentDeclarationOne, "Scourge", creditCardOne);
+        PaymentConfirmation paymentConfirmationOne = new PaymentConfirmation(paymentDeclarationOne, "Scourge", CreditCard.convertFromCreditCardEntity(creditCardEntityOne));
 
         //when
         updatePaymentService.updateDebtsPaymentsBasedOnPaymentConfirmation(paymentConfirmationOne);
@@ -253,7 +254,7 @@ public class UpdatePaymentServiceTest {
         BigDecimal resultPaymentsSizeOfDebtThree = BigDecimal.ZERO;
         BigDecimal resultPaymentsSizeOfDebtFour = BigDecimal.ZERO;
 
-        for (Debt d : debtor.getDebts()) {
+        for (DebtEntity d : debtorEntity.getDebtEntities()) {
             if (d.getUuid().equals("PLWT/871422"))
                 resultPaymentsSizeOfDebtOne = debtCalculatorService.getSumOfPayments(d).setScale(2, RoundingMode.HALF_EVEN);
             else if (d.getUuid().equals("ADWR/595501"))

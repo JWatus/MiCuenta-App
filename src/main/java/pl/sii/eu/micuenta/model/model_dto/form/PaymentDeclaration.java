@@ -1,19 +1,12 @@
-package pl.sii.eu.micuenta.model.form;
-
-import io.swagger.annotations.ApiModelProperty;
+package pl.sii.eu.micuenta.model.model_dto.form;
 
 import java.math.BigDecimal;
+import java.util.Objects;
 
 public class PaymentDeclaration {
 
-    @ApiModelProperty(access = "private", name = "paymentAmount", example = "3000",
-            value = "Debtor's amount of payment")
     private BigDecimal paymentAmount;
-    @ApiModelProperty(access = "private", name = "ssn", example = "980-122-111",
-            value = "Debtor's social security number")
     private String ssn;
-    @ApiModelProperty(access = "private", name = "debtUuid", example = "111222333444",
-            value = "Debtor's universal unique identifier")
     private String debtUuid;
 
     public PaymentDeclaration() {
@@ -47,5 +40,21 @@ public class PaymentDeclaration {
 
     public void setDebtUuid(String debtUuid) {
         this.debtUuid = debtUuid;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof PaymentDeclaration)) return false;
+        PaymentDeclaration that = (PaymentDeclaration) o;
+        return Objects.equals(getPaymentAmount(), that.getPaymentAmount()) &&
+                Objects.equals(getSsn(), that.getSsn()) &&
+                Objects.equals(getDebtUuid(), that.getDebtUuid());
+    }
+
+    @Override
+    public int hashCode() {
+
+        return Objects.hash(getPaymentAmount(), getSsn(), getDebtUuid());
     }
 }

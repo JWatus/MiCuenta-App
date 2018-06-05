@@ -10,10 +10,10 @@ import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.context.junit4.SpringRunner;
 import pl.sii.eu.micuenta.conf.AppConfig;
 import pl.sii.eu.micuenta.conf.DataCreator;
-import pl.sii.eu.micuenta.model.Debtor;
-import pl.sii.eu.micuenta.model.form.PaymentDeclaration;
-import pl.sii.eu.micuenta.model.form.PaymentPlan;
-import pl.sii.eu.micuenta.model.form.PlannedPayment;
+import pl.sii.eu.micuenta.model.model_entity.DebtorEntity;
+import pl.sii.eu.micuenta.model.model_dto.form.PaymentDeclaration;
+import pl.sii.eu.micuenta.model.model_dto.form.PaymentPlan;
+import pl.sii.eu.micuenta.model.model_dto.form.PlannedPayment;
 import pl.sii.eu.micuenta.repository.AccountsRepository;
 
 import javax.transaction.Transactional;
@@ -64,8 +64,8 @@ public class PaymentPlanServiceTest {
     public void shouldGetPaymentPlanBasedOnPaymentDeclarationWhenDebtUuidIsEmpty() {
 
         //given
-        Debtor debtor = dataCreator.createDebtor();
-        accountsRepository.save(debtor);
+        DebtorEntity debtorEntity = dataCreator.createDebtor();
+        accountsRepository.save(debtorEntity);
         PaymentDeclaration paymentDeclaration = new PaymentDeclaration(
                 BigDecimal.valueOf(450).setScale(2, RoundingMode.HALF_EVEN),
                 "980-122-111", "");
@@ -93,8 +93,8 @@ public class PaymentPlanServiceTest {
     public void shouldGetPaymentPlanBasedOnPaymentDeclarationWhenDebtUuidIsEmptyAndPaymentAmountIsBiggerThatOperatedDebt() {
 
         //given
-        Debtor debtor = dataCreator.createDebtor();
-        accountsRepository.save(debtor);
+        DebtorEntity debtorEntity = dataCreator.createDebtor();
+        accountsRepository.save(debtorEntity);
         PaymentDeclaration paymentDeclaration = new PaymentDeclaration(
                 BigDecimal.valueOf(55550).setScale(2, RoundingMode.HALF_EVEN),
                 "980-122-111", "");
@@ -125,8 +125,8 @@ public class PaymentPlanServiceTest {
     public void shouldGetPaymentPlanBasedOnPaymentDeclarationWhenDebtUuidIsEmptyAndPaymentAmountIsBiggerAllDebts() {
 
         //given
-        Debtor debtor = dataCreator.createDebtor();
-        accountsRepository.save(debtor);
+        DebtorEntity debtorEntity = dataCreator.createDebtor();
+        accountsRepository.save(debtorEntity);
         PaymentDeclaration paymentDeclaration = new PaymentDeclaration(
                 BigDecimal.valueOf(155550).setScale(2, RoundingMode.HALF_EVEN),
                 "980-122-111", "");
@@ -157,9 +157,9 @@ public class PaymentPlanServiceTest {
     public void shouldGetMessageThatThereIsNoDebts() {
 
         //given
-        Debtor debtor = dataCreator.createDebtor();
-        debtor.setDebts(new HashSet<>());
-        accountsRepository.save(debtor);
+        DebtorEntity debtorEntity = dataCreator.createDebtor();
+        debtorEntity.setDebtEntities(new HashSet<>());
+        accountsRepository.save(debtorEntity);
         PaymentDeclaration paymentDeclaration = new PaymentDeclaration(
                 BigDecimal.valueOf(155550).setScale(2, RoundingMode.HALF_EVEN),
                 "980-122-111", "");

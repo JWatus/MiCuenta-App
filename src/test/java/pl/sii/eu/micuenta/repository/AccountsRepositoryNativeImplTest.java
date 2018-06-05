@@ -9,7 +9,7 @@ import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.context.junit4.SpringRunner;
 import pl.sii.eu.micuenta.conf.AppConfig;
 import pl.sii.eu.micuenta.conf.DataCreator;
-import pl.sii.eu.micuenta.model.Debtor;
+import pl.sii.eu.micuenta.model.model_entity.DebtorEntity;
 
 import javax.transaction.Transactional;
 import java.util.Optional;
@@ -34,13 +34,13 @@ public class AccountsRepositoryNativeImplTest {
     @Sql(scripts = "/sql_scripts/clean_db.sql", executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
     public void shouldReturnDebtorBySsn() {
         //given
-        Debtor expected = dataCreator.createDebtor();
+        DebtorEntity expected = dataCreator.createDebtor();
 
         //when
         accountsRepository.save(expected);
 
         //than
-        Debtor actual = accountRepositoryNativeSQL.findFirstBySsn(expected.getSsn());
+        DebtorEntity actual = accountRepositoryNativeSQL.findFirstBySsn(expected.getSsn());
         assertThat(expected, equalTo(actual));
     }
 
@@ -49,11 +49,11 @@ public class AccountsRepositoryNativeImplTest {
     @Sql(scripts = "/sql_scripts/clean_db.sql", executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
     public void shouldReturnDebtorBySsnFirstNameLastName() {
         //given
-        Debtor expected = dataCreator.createDebtor();
+        DebtorEntity expected = dataCreator.createDebtor();
         accountsRepository.save(expected);
 
         //when
-        Optional<Debtor> actual = accountRepositoryNativeSQL
+        Optional<DebtorEntity> actual = accountRepositoryNativeSQL
                 .findFirstBySsnAndFirstNameAndLastName("980-122-111", "Jakub", "Watus");
         //than
         assertThat(expected, equalTo(actual.get()));

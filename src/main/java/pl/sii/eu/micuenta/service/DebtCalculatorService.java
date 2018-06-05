@@ -1,9 +1,9 @@
 package pl.sii.eu.micuenta.service;
 
 import org.springframework.stereotype.Service;
-import pl.sii.eu.micuenta.model.Debt;
-import pl.sii.eu.micuenta.model.Debtor;
-import pl.sii.eu.micuenta.model.Payment;
+import pl.sii.eu.micuenta.model.model_entity.DebtEntity;
+import pl.sii.eu.micuenta.model.model_entity.DebtorEntity;
+import pl.sii.eu.micuenta.model.model_entity.PaymentEntity;
 
 import java.math.BigDecimal;
 import java.util.Comparator;
@@ -13,34 +13,34 @@ import java.util.stream.Collectors;
 @Service
 class DebtCalculatorService {
 
-    BigDecimal getDebtLeftToPaid(Debt chosenDebt) {
-        BigDecimal sumOfPayments = getSumOfPayments(chosenDebt);
-        BigDecimal debtAmount = chosenDebt.getDebtAmount();
+    BigDecimal getDebtLeftToPaid(DebtEntity chosenDebtEntity) {
+        BigDecimal sumOfPayments = getSumOfPayments(chosenDebtEntity);
+        BigDecimal debtAmount = chosenDebtEntity.getDebtAmount();
         return debtAmount.subtract(sumOfPayments);
     }
 
-    List<Debt> getListOfOldestDebts(Debtor debtor) {
-        return debtor
-                .getDebts()
+    List<DebtEntity> getListOfOldestDebts(DebtorEntity debtorEntity) {
+        return debtorEntity
+                .getDebtEntities()
                 .stream()
                 .filter(d -> d.getDebtAmount().compareTo(BigDecimal.ZERO) > 0)
-                .sorted(Comparator.comparing(Debt::getRepaymentDate))
+                .sorted(Comparator.comparing(DebtEntity::getRepaymentDate))
                 .collect(Collectors.toList());
     }
 
-    BigDecimal getSumOfDebts(Debtor debtor) {
-        return debtor
-                .getDebts()
+    BigDecimal getSumOfDebts(DebtorEntity debtorEntity) {
+        return debtorEntity
+                .getDebtEntities()
                 .stream()
-                .map(Debt::getDebtAmount)
+                .map(DebtEntity::getDebtAmount)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
     }
 
-    BigDecimal getSumOfPayments(Debt oldestDebt) {
-        return oldestDebt
-                .getPayments()
+    BigDecimal getSumOfPayments(DebtEntity oldestDebtEntity) {
+        return oldestDebtEntity
+                .getPaymentEntities()
                 .stream()
-                .map(Payment::getPaymentAmount)
+                .map(PaymentEntity::getPaymentAmount)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
     }
 }

@@ -7,11 +7,11 @@ import org.springframework.data.domain.Sort;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Repository;
-import pl.sii.eu.micuenta.model.CreditCard;
-import pl.sii.eu.micuenta.model.Debt;
-import pl.sii.eu.micuenta.model.Debtor;
-import pl.sii.eu.micuenta.model.Payment;
-import pl.sii.eu.micuenta.repository.mappers.DebtorRowMapper;
+import pl.sii.eu.micuenta.model.model_entity.CreditCardEntity;
+import pl.sii.eu.micuenta.model.model_entity.DebtEntity;
+import pl.sii.eu.micuenta.model.model_entity.DebtorEntity;
+import pl.sii.eu.micuenta.model.model_entity.PaymentEntity;
+import pl.sii.eu.micuenta.repository.mappers.DebtorEntityRowMapper;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -28,93 +28,93 @@ public class AccountsRepositoryNativeImpl implements AccountsRepository {
         this.jdbcTemplate = jdbcTemplate;
     }
 
-    public Debtor findFirstBySsn(String ssn) {
+    public DebtorEntity findFirstBySsn(String ssn) {
         MapSqlParameterSource paramSource = new MapSqlParameterSource();
         paramSource.addValue("ssn", ssn);
-        String query = "SELECT ID, FIRST_NAME, LAST_NAME, SSN FROM DEBTOR WHERE SSN = :ssn";
-        Debtor debtor = (Debtor) jdbcTemplate.queryForObject(query, paramSource, new DebtorRowMapper());
-        debtor.setDebts(this.findDebtById(debtor.getId()));
-        return debtor;
+        String query = "SELECT ID, FIRST_NAME, LAST_NAME, SSN FROM DEBTOR_ENTITY WHERE SSN = :ssn";
+        DebtorEntity debtorEntity = (DebtorEntity) jdbcTemplate.queryForObject(query, paramSource, new DebtorEntityRowMapper());
+        debtorEntity.setDebtEntities(this.findDebtEntityById(debtorEntity.getId()));
+        return debtorEntity;
     }
 
-    public Optional<Debtor> findFirstBySsnAndFirstNameAndLastName(String ssn, String firstName, String lastName) {
+    public Optional<DebtorEntity> findFirstBySsnAndFirstNameAndLastName(String ssn, String firstName, String lastName) {
         MapSqlParameterSource paramSource = new MapSqlParameterSource();
         paramSource.addValue("ssn", ssn);
         paramSource.addValue("firstName", firstName);
         paramSource.addValue("lastName", lastName);
-        String query = "SELECT ID, FIRST_NAME, LAST_NAME, SSN FROM DEBTOR " +
+        String query = "SELECT ID, FIRST_NAME, LAST_NAME, SSN FROM DEBTOR_ENTITY " +
                 "WHERE SSN = :ssn AND FIRST_NAME = :firstName AND LAST_NAME = :lastName";
 
-        Debtor debtor = (Debtor) jdbcTemplate.queryForObject(query, paramSource, new DebtorRowMapper());
-        debtor.setDebts(this.findDebtById(debtor.getId()));
-        return Optional.ofNullable(debtor);
+        DebtorEntity debtorEntity = (DebtorEntity) jdbcTemplate.queryForObject(query, paramSource, new DebtorEntityRowMapper());
+        debtorEntity.setDebtEntities(this.findDebtEntityById(debtorEntity.getId()));
+        return Optional.ofNullable(debtorEntity);
     }
 
-    private Set<Debt> findDebtById(long id) {
+    private Set<DebtEntity> findDebtEntityById(long id) {
         MapSqlParameterSource paramSource = new MapSqlParameterSource();
         paramSource.addValue("id", id);
-        String query = "SELECT ID, DEBT_AMOUNT, DEBT_NAME, REPAYMENT_DATE, UUID FROM DEBT WHERE DEBTOR_ID = :id";
-        Set<Debt> debts = new HashSet<>();
+        String query = "SELECT ID, DEBT_AMOUNT, DEBT_NAME, REPAYMENT_DATE, UUID FROM DEBT_ENTITY WHERE DEBTOR_ENTITY_ID = :id";
+        Set<DebtEntity> debts = new HashSet<>();
         List<Map<String, Object>> rows = jdbcTemplate.queryForList(query, paramSource);
         for (Map row : rows) {
-            Debt debt = new Debt();
-            debt.setId((long) row.get("ID"));
-            debt.setDebtAmount(new BigDecimal(row.get("DEBT_AMOUNT").toString()).setScale(2, RoundingMode.HALF_EVEN));
-            debt.setDebtName((String) row.get("DEBT_NAME"));
-            debt.setRepaymentDate(LocalDate.parse(row.get("REPAYMENT_DATE").toString(), DATE_FORMATTER));
-            debt.setUuid((String) row.get("UUID"));
-            debt.setPayments(this.findPaymentsByDebtId(debt.getId()));
-            debts.add(debt);
+            DebtEntity debtEntity = new DebtEntity();
+            debtEntity.setId((long) row.get("ID"));
+            debtEntity.setDebtAmount(new BigDecimal(row.get("DEBT_AMOUNT").toString()).setScale(2, RoundingMode.HALF_EVEN));
+            debtEntity.setDebtName((String) row.get("DEBT_NAME"));
+            debtEntity.setRepaymentDate(LocalDate.parse(row.get("REPAYMENT_DATE").toString(), DATE_FORMATTER));
+            debtEntity.setUuid((String) row.get("UUID"));
+            debtEntity.setPaymentEntities(this.findPaymentEntitiesByDebtEntityId(debtEntity.getId()));
+            debts.add(debtEntity);
         }
         return debts;
     }
 
-    private Set<Payment> findPaymentsByDebtId(long id) {
+    private Set<PaymentEntity> findPaymentEntitiesByDebtEntityId(long id) {
         MapSqlParameterSource paramSource = new MapSqlParameterSource();
         paramSource.addValue("id", id);
 
         String query = "SELECT t1.ID, t1.CLIENT_ID, t1.PAYMENT_AMOUNT, t1.PAYMENT_DATE, t2.* " +
-                "FROM PAYMENT t1 JOIN CREDIT_CARD t2 on (t1.CREDIT_CARD_ID=t2.ID)  " +
-                "WHERE DEBT_ID = :id";
-        Set<Payment> payments = new HashSet<>();
+                "FROM PAYMENT_ENTITY t1 JOIN CREDIT_CARD_ENTITY t2 on (t1.CREDIT_CARD_ENTITY_ID=t2.ID)  " +
+                "WHERE DEBT_ENTITY_ID = :id";
+        Set<PaymentEntity> payments = new HashSet<>();
         List<Map<String, Object>> rows = jdbcTemplate.queryForList(query, paramSource);
         for (Map row : rows) {
-            Payment payment = new Payment();
-            payment.setId((long) row.get("ID"));
-            payment.setClientId((String) row.get("CLIENT_ID"));
-            payment.setPaymentAmount(new BigDecimal(row.get("PAYMENT_AMOUNT").toString()).setScale(2, RoundingMode.HALF_EVEN));
-            payment.setPaymentDate(LocalDate.parse(row.get("PAYMENT_DATE").toString(), DATE_FORMATTER));
-            CreditCard creditCard = new CreditCard();
-            creditCard.setId((long) row.get("ID"));
-            creditCard.setCcNumber((String) row.get("CC_NUMBER"));
-            creditCard.setCvv((String) row.get("CVV"));
-            creditCard.setExpDate(LocalDate.parse(row.get("EXP_DATE").toString(), DATE_FORMATTER));
-            creditCard.setFirstName((String) row.get("FIRST_NAME"));
-            creditCard.setLastName((String) row.get("LAST_NAME"));
-            creditCard.setIssuingNetwork((String) row.get("ISSUING_NETWORK"));
-            payment.setCreditCard(creditCard);
-            payments.add(payment);
+            PaymentEntity paymentEntity = new PaymentEntity();
+            paymentEntity.setId((long) row.get("ID"));
+            paymentEntity.setClientId((String) row.get("CLIENT_ID"));
+            paymentEntity.setPaymentAmount(new BigDecimal(row.get("PAYMENT_AMOUNT").toString()).setScale(2, RoundingMode.HALF_EVEN));
+            paymentEntity.setPaymentDate(LocalDate.parse(row.get("PAYMENT_DATE").toString(), DATE_FORMATTER));
+            CreditCardEntity creditCardEntity = new CreditCardEntity();
+            creditCardEntity.setId((long) row.get("ID"));
+            creditCardEntity.setCcNumber((String) row.get("CC_NUMBER"));
+            creditCardEntity.setCvv((String) row.get("CVV"));
+            creditCardEntity.setExpDate(LocalDate.parse(row.get("EXP_DATE").toString(), DATE_FORMATTER));
+            creditCardEntity.setFirstName((String) row.get("FIRST_NAME"));
+            creditCardEntity.setLastName((String) row.get("LAST_NAME"));
+            creditCardEntity.setIssuingNetwork((String) row.get("ISSUING_NETWORK"));
+            paymentEntity.setCreditCardEntity(creditCardEntity);
+            payments.add(paymentEntity);
         }
         return payments;
     }
 
     @Override
-    public List<Debtor> findAll() {
+    public List<DebtorEntity> findAll() {
         throw new UnsupportedOperationException();
     }
 
     @Override
-    public List<Debtor> findAll(Sort sort) {
+    public List<DebtorEntity> findAll(Sort sort) {
         throw new UnsupportedOperationException();
     }
 
     @Override
-    public List<Debtor> findAllById(Iterable<Long> iterable) {
+    public List<DebtorEntity> findAllById(Iterable<Long> iterable) {
         throw new UnsupportedOperationException();
     }
 
     @Override
-    public <S extends Debtor> List<S> saveAll(Iterable<S> iterable) {
+    public <S extends DebtorEntity> List<S> saveAll(Iterable<S> iterable) {
         throw new UnsupportedOperationException();
     }
 
@@ -124,12 +124,12 @@ public class AccountsRepositoryNativeImpl implements AccountsRepository {
     }
 
     @Override
-    public <S extends Debtor> S saveAndFlush(S s) {
+    public <S extends DebtorEntity> S saveAndFlush(S s) {
         throw new UnsupportedOperationException();
     }
 
     @Override
-    public void deleteInBatch(Iterable<Debtor> iterable) {
+    public void deleteInBatch(Iterable<DebtorEntity> iterable) {
         throw new UnsupportedOperationException();
     }
 
@@ -139,32 +139,32 @@ public class AccountsRepositoryNativeImpl implements AccountsRepository {
     }
 
     @Override
-    public Debtor getOne(Long aLong) {
+    public DebtorEntity getOne(Long aLong) {
         throw new UnsupportedOperationException();
     }
 
     @Override
-    public <S extends Debtor> List<S> findAll(Example<S> example) {
+    public <S extends DebtorEntity> List<S> findAll(Example<S> example) {
         throw new UnsupportedOperationException();
     }
 
     @Override
-    public <S extends Debtor> List<S> findAll(Example<S> example, Sort sort) {
+    public <S extends DebtorEntity> List<S> findAll(Example<S> example, Sort sort) {
         throw new UnsupportedOperationException();
     }
 
     @Override
-    public Page<Debtor> findAll(Pageable pageable) {
+    public Page<DebtorEntity> findAll(Pageable pageable) {
         throw new UnsupportedOperationException();
     }
 
     @Override
-    public <S extends Debtor> S save(S s) {
+    public <S extends DebtorEntity> S save(S s) {
         throw new UnsupportedOperationException();
     }
 
     @Override
-    public Optional<Debtor> findById(Long aLong) {
+    public Optional<DebtorEntity> findById(Long aLong) {
         throw new UnsupportedOperationException();
     }
 
@@ -184,12 +184,12 @@ public class AccountsRepositoryNativeImpl implements AccountsRepository {
     }
 
     @Override
-    public void delete(Debtor debtor) {
+    public void delete(DebtorEntity debtorEntity) {
         throw new UnsupportedOperationException();
     }
 
     @Override
-    public void deleteAll(Iterable<? extends Debtor> iterable) {
+    public void deleteAll(Iterable<? extends DebtorEntity> iterable) {
         throw new UnsupportedOperationException();
     }
 
@@ -199,22 +199,22 @@ public class AccountsRepositoryNativeImpl implements AccountsRepository {
     }
 
     @Override
-    public <S extends Debtor> Optional<S> findOne(Example<S> example) {
+    public <S extends DebtorEntity> Optional<S> findOne(Example<S> example) {
         throw new UnsupportedOperationException();
     }
 
     @Override
-    public <S extends Debtor> Page<S> findAll(Example<S> example, Pageable pageable) {
+    public <S extends DebtorEntity> Page<S> findAll(Example<S> example, Pageable pageable) {
         throw new UnsupportedOperationException();
     }
 
     @Override
-    public <S extends Debtor> long count(Example<S> example) {
+    public <S extends DebtorEntity> long count(Example<S> example) {
         throw new UnsupportedOperationException();
     }
 
     @Override
-    public <S extends Debtor> boolean exists(Example<S> example) {
+    public <S extends DebtorEntity> boolean exists(Example<S> example) {
         throw new UnsupportedOperationException();
     }
 }
