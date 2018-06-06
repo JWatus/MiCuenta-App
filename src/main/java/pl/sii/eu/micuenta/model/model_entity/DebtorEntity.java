@@ -29,7 +29,7 @@ public class DebtorEntity implements Serializable {
     private String lastName;
     private String ssn;
     @OneToMany(mappedBy = "debtorEntity", fetch = FetchType.EAGER, cascade = CascadeType.ALL)
-    private Set<DebtEntity> debtEntities;
+    private Set<DebtEntity> debtEntities = Collections.emptySet();
 
     public static DebtorEntity convertFromDebtor(Debtor debtor) {
 

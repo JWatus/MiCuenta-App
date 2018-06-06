@@ -26,7 +26,7 @@ public class DebtEntity implements Serializable {
     @ManyToOne
     private DebtorEntity debtorEntity;
     @OneToMany(mappedBy = "debtEntity", fetch = FetchType.EAGER, cascade = CascadeType.ALL)
-    private Set<PaymentEntity> paymentEntities;
+    private Set<PaymentEntity> paymentEntities  = Collections.emptySet();
 
     public static DebtEntity convertFromDebt(Debt debt) {
 

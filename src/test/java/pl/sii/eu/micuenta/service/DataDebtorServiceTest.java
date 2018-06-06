@@ -60,15 +60,13 @@ public class DataDebtorServiceTest {
     public void shouldResponseWithHttpStatusNotFoundWhenUserWasNotSuccessfullyVerified() {
 
         //given
-        DebtorEntity debtorEntity = dataCreator.createDebtor();
-        accountsRepository.save(debtorEntity);
-
-        DebtorEntity receivedDebtorEntity = dataCreator.createDebtor();
-        receivedDebtorEntity.setFirstName("Adam");
-        receivedDebtorEntity.setLastName("Menethil");
+        Debtor debtor = new Debtor();
+        debtor.setSsn("980-122-111");
+        debtor.setFirstName("Jakub");
+        debtor.setLastName("Watus");
 
         //when
-        ResponseEntity result = dataDebtorService.validateDebtorsData(Debtor.convertFromDebtorEntity(receivedDebtorEntity));
+        ResponseEntity result = dataDebtorService.validateDebtorsData(debtor);
 
         //then
         assertThat(result).isEqualTo(new ResponseEntity(HttpStatus.NOT_FOUND));

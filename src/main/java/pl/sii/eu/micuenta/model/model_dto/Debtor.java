@@ -14,12 +14,13 @@ public class Debtor implements Serializable {
     private String firstName;
     private String lastName;
     private String ssn;
-    private Set<Debt> debts;
+    private Set<Debt> debts = Collections.emptySet();
 
     public static Debtor convertFromDebtorEntity(DebtorEntity debtorEntity) {
 
         Debtor debtor = new Debtor();
 
+        debtor.setId(debtorEntity.getId());
         debtor.setFirstName(debtorEntity.getFirstName());
         debtor.setLastName(debtorEntity.getLastName());
         debtor.setSsn(debtorEntity.getSsn());

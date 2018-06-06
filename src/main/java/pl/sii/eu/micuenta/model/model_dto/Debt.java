@@ -22,12 +22,13 @@ public class Debt implements Serializable {
     private String debtName;
     @JsonIgnore
     private Debtor debtor;
-    private Set<Payment> payments;
+    private Set<Payment> payments = Collections.emptySet();;
 
     public static Debt convertFromDebtEntity(DebtEntity debtEntity) {
 
         Debt debt = new Debt();
 
+        debt.setId(debtEntity.getId());
         debt.setDebtAmount(debtEntity.getDebtAmount());
         debt.setDebtName(debtEntity.getDebtName());
         debt.setRepaymentDate(debtEntity.getRepaymentDate());
