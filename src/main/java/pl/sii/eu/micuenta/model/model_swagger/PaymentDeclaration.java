@@ -4,7 +4,7 @@ import io.swagger.annotations.ApiModelProperty;
 
 import java.math.BigDecimal;
 
-public class PaymentDeclaration {
+class PaymentDeclaration {
 
     @ApiModelProperty(access = "private", name = "paymentAmount", example = "3000",
             value = "Debtor's amount of payment")
