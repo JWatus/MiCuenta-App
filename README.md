@@ -1,4 +1,4 @@
-## MiCuenta - debt management application :money_with_wings: :credit_card: 
+## MiCuenta - Debt Management Application :money_with_wings: :credit_card: 
 
 #### This API allows client application to connect and manage user's debts.
 
