@@ -42,6 +42,7 @@ At this moment connection with external API is not implemented. For now example 
 at initialization. Data of this debtor You can find in DataCreator class.
 
 ### How does it work?
+
 Application operations in sequence are:
 
 1. Through client application user is sending request with <i>Debtor</i> object. Next debtor is validated 
@@ -57,12 +58,19 @@ In response API is sending <i>PaymentPlan</i> based on received amount. This obj
 <i>PlannedPayments</i> and appropriate message for user - how repayment system works is described 
 in the next paragraph.
 
-4. In the end client sends <i>PaymentConfirmation</i> with CreditCard which will be used to pay. In response
-API will send status 200 if list of payments for chosen debts has been updated, 400 if payment amount was not
-valid or 404 if debt with chosen id does not exist.
+4. In the end client sends <i>PaymentConfirmation</i> with <i>CreditCard</i> which will be used to pay. 
+In response API will send status 200 if list of payments for chosen debts has been updated, 400 if 
+payment amount was not valid or 404 if debt with chosen id does not exist.
 
 If You want to reset database after initialization and making operations of it, just open link
  [http://localhost:7000/reset](http://localhost:7000/reset).
 
+### How repayment system works?
 
-
+- If user choose specific debt this debt will be paid. If amount of payment money will be greater 
+than this debt, except chosen one, debts will be paid respectively from the oldest one as long as payment 
+amount will be greater then zero.
+- If user does not choose any debt, debts will be paid respectively from the oldest one from the beginning.
+- If payment amount will be greater than sum of all debts, all of them will be paid instantly and proper 
+message will be send to client.
+- If there will be no more debts to be paid, user will get message about no more debts to be paid off.
