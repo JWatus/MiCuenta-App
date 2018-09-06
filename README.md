@@ -35,3 +35,10 @@ And fill form with those values:
 
 After doing this press Connect button.
 
+### Assumptions
+
+This API is intended to be connected with client application and external API with debtor's data. 
+At this moment connection with external API is not implemented. For now example debtor is created
+at initialization. 
+
+
