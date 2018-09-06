@@ -104,3 +104,17 @@ which should be set at client side and it should be name of client application.
 
 For example in application named Alivio which send TextMessage to API setting property should be:
 <i>textMessage.setStringProperty("client", "Alivio");</i>
+
+API will set StringProperty for "endpoint". In order of usage those endpoints will be: 
+login, balance, paymentplan and paymentsupdate.
+
+### Technology used to create and develop this application: 
+- Java 8
+- Spring Boot
+- Spring Web Services
+- Java Messaging Service
+- Hibernate
+- H2
+- JUnit
+- Swagger
+
