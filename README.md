@@ -74,3 +74,33 @@ amount will be greater then zero.
 - If payment amount will be greater than sum of all debts, all of them will be paid instantly and proper 
 message will be send to client.
 - If there will be no more debts to be paid, user will get message about no more debts to be paid off.
+ 
+### Connections
+
+Client application can connect with MiCuenta API in one of two ways: through REST 
+or in asynchronous way with JMS.
+
+<b>REST</b>
+
+Endpoints for REST communications with API are:
+- Debtor validation: <i>/login</i>
+- Balance request: <i>/balance/{ssn}</i>
+- Sending payment declaration and getting payment plan: <i>/paymentplan</i>
+- Sending payment confirmation with credit card: <i>/paymentmethods/creditcard</i>
+
+<b>JMS</b>
+
+For using Java Messaging Service (JMS) You need to deploy ActiveMQ on chosen port and set this connection 
+in <i>MessagingConfiguration</i> class.<br>
+
+API listeners are:
+- Debtor validation: <i>jms.queue.login</i> queue 
+- Balance request: <i>jms.queue.balance</i> queue 
+- Sending payment declaration and getting payment plan: <i>jms.queue.paymentplan</i> queue 
+- Sending payment confirmation with credit card: <i>jms.queue.paymentsupdate</i> queue 
+
+Responses will be send to <i>jms.queue.x</i> where x is "client" StringProperty 
+which should be set at client side and it should be name of client application.
+
+For example in application named Alivio which send TextMessage to API setting property should be:
+<i>textMessage.setStringProperty("client", "Alivio");</i>
