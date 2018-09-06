@@ -61,6 +61,6 @@ public class DataCreator {
         setOfDebtEntities.add(debtEntityThree);
         setOfDebtEntities.add(debtEntityFour);
 
-        return new DebtorEntity("Jakub", "Watus", "980-122-111", setOfDebtEntities);
+        return new DebtorEntity("Jaime", "Karren", "980-122-111", setOfDebtEntities);
     }
 }
