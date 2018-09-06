@@ -39,7 +39,7 @@ After doing this press Connect button.
 
 This API is intended to be connected with client application and external API with debtor's data. 
 At this moment connection with external API is not implemented. For now example debtor is created
-at initialization. Data of this debtor You can find in DataCreator class.
+at initialization. Data of this debtor You can find in <i>DataCreator</i> class.
 
 ### How does it work?
 
