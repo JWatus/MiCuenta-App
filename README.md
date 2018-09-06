@@ -105,8 +105,12 @@ which should be set at client side and it should be name of client application.
 For example in application named Alivio which send TextMessage to API setting property should be:
 <i>textMessage.setStringProperty("client", "Alivio");</i>
 
-API will set StringProperty for "endpoint". In order of usage those endpoints will be: 
+API in response will set StringProperty for "endpoint". In order of usage those endpoints will be: 
 login, balance, paymentplan and paymentsupdate.
+
+### Swagger - API documentations
+
+In this application Swagger was used to create API documentation.  
 
 ### Technology used to create and develop this application: 
 - Java 8
@@ -118,3 +122,4 @@ login, balance, paymentplan and paymentsupdate.
 - JUnit
 - Swagger
 
+### Enjoy :heavy_exclamation_mark:
