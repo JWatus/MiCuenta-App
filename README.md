@@ -41,6 +41,11 @@ This API is intended to be connected with client application and external API wi
 At this moment connection with external API is not implemented. For now example debtor is created
 at initialization. Data of this debtor You can find in <i>DataCreator</i> class.
 
+### Example client application
+
+Example client application what can be used to check out this API is Alivio and You can find it at following address:
+[https://github.com/JWatus/AlivioClient](https://github.com/JWatus/AlivioClient)
+
 ### How does it work?
 
 Application operations in sequence are:
